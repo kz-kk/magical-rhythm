@@ -408,6 +408,33 @@
             width: 32px;
             height: 32px;
         }
+
+        .difficulty-text {
+            text-align: center;
+            color: #d1d5db;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+
+        .difficulty-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .difficulty-btn {
+            flex: 1;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+        }
+
+        .difficulty-btn.active {
+            opacity: 1;
+        }
+
+        .start-btn {
+            width: 100%;
+        }
     </style>
 </head>
 <body>
@@ -457,6 +484,32 @@
                 <input type="range" id="volumeSlider" class="volume-slider" min="0" max="1" step="0.1" value="0.5">
                 <span class="volume-text"><span id="volumeValue">50</span>%</span>
             </div>
+        </div>
+
+        <!-- 難易度選択 -->
+        <div id="difficultySelection" class="controls hidden">
+            <div class="difficulty-text">難易度を選択してください</div>
+            <div class="difficulty-buttons">
+                <button id="easyBtn" class="button button-green difficulty-btn active">
+                    <svg class="icon icon-small" viewBox="0 0 24 24">
+                        <path d="M20 12c0 4.4-3.6 8-8 8s-8-3.6-8-8 3.6-8 8-8 8 3.6 8 8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    Easy
+                </button>
+                <button id="hardBtn" class="button button-red difficulty-btn">
+                    <svg class="icon icon-small" viewBox="0 0 24 24">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>
+                    Hard
+                </button>
+            </div>
+            <button id="startBtn" class="button button-blue start-btn">
+                <svg class="icon icon-medium" viewBox="0 0 24 24">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+                スタート
+            </button>
         </div>
 
         <!-- エラー状態 -->
@@ -509,25 +562,6 @@
 
         <!-- コントロール -->
         <div id="controls" class="controls">
-            <button id="startBtn" class="button button-green hidden">
-                <svg class="icon icon-medium" viewBox="0 0 24 24">
-                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                </svg>
-                スタート
-            </button>
-            <button id="pauseBtn" class="button button-yellow hidden">
-                <svg class="icon icon-medium" viewBox="0 0 24 24">
-                    <rect x="6" y="4" width="4" height="16"></rect>
-                    <rect x="14" y="4" width="4" height="16"></rect>
-                </svg>
-                ポーズ
-            </button>
-            <button id="resumeBtn" class="button button-yellow hidden">
-                <svg class="icon icon-medium" viewBox="0 0 24 24">
-                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                </svg>
-                再開
-            </button>
             <button id="resetBtn" class="button button-red hidden">
                 <svg class="icon icon-medium" viewBox="0 0 24 24">
                     <polyline points="1 4 1 10 7 10"></polyline>
@@ -535,18 +569,14 @@
                 </svg>
                 リセット
             </button>
-            <button id="retryBtn" class="button button-blue hidden">
-                <svg class="icon icon-medium" viewBox="0 0 24 24">
-                    <polyline points="1 4 1 10 7 10"></polyline>
-                    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
-                </svg>
-                もう一度
-            </button>
         </div>
 
         <!-- 新しいファイル選択 -->
-        <div id="newFileArea" class="new-file-link hidden">
-            <label class="link">
+        <div id="newFileArea" class="controls hidden">
+            <label class="button button-blue">
+                <svg class="icon icon-medium" viewBox="0 0 24 24">
+                    <path d="M9 18V5l12-2v13M9 9l12-2M3 9h1m0 0a2 2 0 0 0 2 2 2 2 0 0 0 2-2m-4 0a2 2 0 0 1 2-2 2 2 0 0 1 2 2m-1 7h1m0 0a2 2 0 0 0 2 2 2 2 0 0 0 2-2m-4 0a2 2 0 0 1 2-2 2 2 0 0 1 2 2"></path>
+                </svg>
                 別の楽曲を選択
                 <input type="file" accept="audio/*,.mp3,.wav,.ogg,.m4a,.flac,.aac" id="newFileInput" class="hidden">
             </label>
@@ -575,7 +605,8 @@
             audioBuffer: null,
             volume: 0.5,
             analysisProgress: 0,
-            useSimplePattern: false
+            useSimplePattern: false,
+            difficulty: 'easy' // 'easy' or 'hard'
         };
 
         // ゲーム設定
@@ -614,10 +645,11 @@
             notesContainer: document.getElementById('notesContainer'),
             judgmentText: document.getElementById('judgmentText'),
             startBtn: document.getElementById('startBtn'),
-            pauseBtn: document.getElementById('pauseBtn'),
-            resumeBtn: document.getElementById('resumeBtn'),
             resetBtn: document.getElementById('resetBtn'),
-            retryBtn: document.getElementById('retryBtn'),
+            difficultySelection: document.getElementById('difficultySelection'),
+            easyBtn: document.getElementById('easyBtn'),
+            hardBtn: document.getElementById('hardBtn'),
+            startBtn: document.getElementById('startBtn'),
             simplePatternBtn: document.getElementById('simplePatternBtn')
         };
 
@@ -669,7 +701,7 @@
                 elements.beatCount.textContent = beats.length;
                 elements.duration.classList.remove('hidden');
                 elements.durationValue.textContent = Math.floor(audioBuffer.duration);
-                elements.startBtn.classList.remove('hidden');
+                showDifficultySelection();
 
             } catch (error) {
                 console.error('音楽解析エラー:', error);
@@ -789,7 +821,7 @@
             elements.beatCount.textContent = beats.length;
             elements.duration.classList.remove('hidden');
             elements.durationValue.textContent = Math.floor(gameState.audioBuffer.duration);
-            elements.startBtn.classList.remove('hidden');
+            showDifficultySelection();
 
             // ファイル情報更新
             if (gameState.useSimplePattern) {
@@ -853,6 +885,18 @@
             oscillator.stop(audioContext.currentTime + 0.15);
         }
 
+        // 難易度選択表示
+        function showDifficultySelection() {
+            elements.difficultySelection.classList.remove('hidden');
+        }
+
+        // 難易度選択
+        function selectDifficulty(difficulty) {
+            gameState.difficulty = difficulty;
+            elements.easyBtn.classList.toggle('active', difficulty === 'easy');
+            elements.hardBtn.classList.toggle('active', difficulty === 'hard');
+        }
+
         // ゲーム開始
         function startGame() {
             if (!gameState.analysisComplete || !gameState.beatTimes.length) return;
@@ -873,22 +917,6 @@
             gameLoop();
         }
 
-        // ゲーム一時停止・再開
-        function togglePause() {
-            if (gameState.state === 'playing') {
-                gameState.state = 'paused';
-                if (audioSource) {
-                    audioSource.stop();
-                }
-                elements.pauseBtn.classList.add('hidden');
-                elements.resumeBtn.classList.remove('hidden');
-            } else if (gameState.state === 'paused') {
-                gameState.state = 'playing';
-                playMusic();
-                elements.pauseBtn.classList.remove('hidden');
-                elements.resumeBtn.classList.add('hidden');
-            }
-        }
 
         // ゲームリセット
         function resetGame() {
@@ -910,7 +938,10 @@
             updateScore();
             updateCombo();
             hideJudgment();
-            showInitialControls();
+            
+            // 難易度選択を再表示
+            elements.resetBtn.classList.add('hidden');
+            elements.difficultySelection.classList.remove('hidden');
         }
 
         // タップ処理
@@ -1032,22 +1063,33 @@
                 const appearTime = beatTime - 2;
                 
                 if (appearTime <= currentTime) {
-                    const lane = Math.floor(Math.random() * 4);
-                    const noteId = Date.now() + Math.random();
+                    // Hardモードでは複数のノートを生成
+                    const noteCount = gameState.difficulty === 'hard' ? Math.floor(Math.random() * 2) + 1 : 1;
+                    const usedLanes = new Set();
                     
-                    const note = {
-                        id: noteId,
-                        lane: lane,
-                        y: -50,
-                        targetTime: beatTime,
-                        hit: false
-                    };
-                    
-                    gameState.notes.push(note);
-                    
-                    // DOM要素作成
-                    const noteElement = createNoteElement(note);
-                    elements.notesContainer.appendChild(noteElement);
+                    for (let i = 0; i < noteCount; i++) {
+                        let lane;
+                        do {
+                            lane = Math.floor(Math.random() * 4);
+                        } while (usedLanes.has(lane));
+                        usedLanes.add(lane);
+                        
+                        const noteId = Date.now() + Math.random() + i;
+                        
+                        const note = {
+                            id: noteId,
+                            lane: lane,
+                            y: -50,
+                            targetTime: beatTime,
+                            hit: false
+                        };
+                        
+                        gameState.notes.push(note);
+                        
+                        // DOM要素作成
+                        const noteElement = createNoteElement(note);
+                        elements.notesContainer.appendChild(noteElement);
+                    }
                     
                     nextNoteIndex++;
                 } else {
@@ -1093,28 +1135,13 @@
         }
 
         // コントロール表示管理
-        function showInitialControls() {
-            elements.startBtn.classList.remove('hidden');
-            elements.pauseBtn.classList.add('hidden');
-            elements.resumeBtn.classList.add('hidden');
-            elements.resetBtn.classList.add('hidden');
-            elements.retryBtn.classList.add('hidden');
-        }
-
         function showGameControls() {
-            elements.startBtn.classList.add('hidden');
-            elements.pauseBtn.classList.remove('hidden');
-            elements.resumeBtn.classList.add('hidden');
+            elements.difficultySelection.classList.add('hidden');
             elements.resetBtn.classList.remove('hidden');
-            elements.retryBtn.classList.add('hidden');
         }
 
         function showFinishControls() {
-            elements.startBtn.classList.add('hidden');
-            elements.pauseBtn.classList.add('hidden');
-            elements.resumeBtn.classList.add('hidden');
-            elements.resetBtn.classList.add('hidden');
-            elements.retryBtn.classList.remove('hidden');
+            elements.resetBtn.classList.remove('hidden');
         }
 
         // イベントリスナー設定
@@ -1122,10 +1149,9 @@
         elements.newFileInput.addEventListener('change', handleFileUpload);
         elements.simplePatternBtn.addEventListener('click', generateSimplePattern);
         elements.startBtn.addEventListener('click', startGame);
-        elements.pauseBtn.addEventListener('click', togglePause);
-        elements.resumeBtn.addEventListener('click', togglePause);
         elements.resetBtn.addEventListener('click', resetGame);
-        elements.retryBtn.addEventListener('click', resetGame);
+        elements.easyBtn.addEventListener('click', () => selectDifficulty('easy'));
+        elements.hardBtn.addEventListener('click', () => selectDifficulty('hard'));
 
         // 音量調整
         elements.volumeSlider.addEventListener('input', (e) => {
