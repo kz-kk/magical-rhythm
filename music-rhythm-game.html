@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>楽曲解析リズムゲーム</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(to bottom right, #581c87, #1e3a8a, #312e81);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .game-container {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(12px);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            width: 100%;
+            max-width: 448px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .title-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .file-info {
+            font-size: 0.875rem;
+            color: #d1d5db;
+            margin-bottom: 0.5rem;
+        }
+
+        .simple-pattern {
+            color: #facc15;
+            margin-left: 0.5rem;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            color: #d1d5db;
+        }
+
+        .upload-area {
+            display: block;
+            width: 100%;
+            padding: 1.5rem;
+            border: 2px dashed #9ca3af;
+            border-radius: 0.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.3s;
+            margin-bottom: 1rem;
+        }
+
+        .upload-area:hover {
+            border-color: #a855f7;
+        }
+
+        .upload-icon {
+            display: inline-block;
+            margin-bottom: 0.5rem;
+            color: #9ca3af;
+        }
+
+        .upload-text {
+            color: #d1d5db;
+            display: block;
+        }
+
+        .upload-subtext {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-top: 0.25rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .analysis-status {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .analysis-text {
+            color: #facc15;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            background: #374151;
+            border-radius: 9999px;
+            height: 0.5rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: #facc15;
+            height: 100%;
+            border-radius: 9999px;
+            transition: width 0.3s;
+        }
+
+        .progress-hint {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            margin-top: 0.25rem;
+        }
+
+        .success-status {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .success-text {
+            color: #10b981;
+            margin-bottom: 0.5rem;
+        }
+
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .volume-slider {
+            flex: 1;
+        }
+
+        .volume-text {
+            font-size: 0.875rem;
+            color: #d1d5db;
+        }
+
+        .error-status {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .error-text {
+            color: #ef4444;
+            margin-bottom: 0.5rem;
+        }
+
+        .simple-pattern-button {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #3b82f6;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin: 0 auto;
+        }
+
+        .simple-pattern-button:hover {
+            background: #2563eb;
+        }
+
+        .simple-hint {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            margin-top: 0.25rem;
+        }
+
+        .game-area {
+            position: relative;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 0.75rem;
+            overflow: hidden;
+            margin-bottom: 1rem;
+            height: 400px;
+        }
+
+        .lanes {
+            position: absolute;
+            inset: 0;
+            display: flex;
+        }
+
+        .lane {
+            flex: 1;
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .lane:last-child {
+            border-right: none;
+        }
+
+        .judgment-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            border-top: 2px solid #facc15;
+            background: rgba(250, 204, 21, 0.2);
+            height: 4px;
+        }
+
+        .note {
+            position: absolute;
+            width: 25%;
+            height: 48px;
+            background: linear-gradient(to bottom, #ec4899, #a855f7);
+            border-radius: 0.5rem;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transform: translateX(-50%);
+        }
+
+        .note.hit {
+            opacity: 0.5;
+        }
+
+        .judgment-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5rem;
+            font-weight: bold;
+            animation: pulse 0.5s;
+        }
+
+        @keyframes pulse {
+            0% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.2); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .judgment-perfect { color: #facc15; }
+        .judgment-good { color: #10b981; }
+        .judgment-miss { color: #ef4444; }
+
+        .tap-areas {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            height: 80px;
+        }
+
+        .tap-area {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: bold;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: background 0.3s;
+            position: relative;
+        }
+
+        .tap-area:last-child {
+            border-right: none;
+        }
+
+        .tap-area:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .tap-area:active {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .tap-key {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .button {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1.5rem;
+            border-radius: 0.5rem;
+            border: none;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-size: 1rem;
+        }
+
+        .button-green {
+            background: #10b981;
+        }
+
+        .button-green:hover {
+            background: #059669;
+        }
+
+        .button-yellow {
+            background: #eab308;
+        }
+
+        .button-yellow:hover {
+            background: #ca8a04;
+        }
+
+        .button-red {
+            background: #ef4444;
+        }
+
+        .button-red:hover {
+            background: #dc2626;
+        }
+
+        .button-blue {
+            background: #3b82f6;
+        }
+
+        .button-blue:hover {
+            background: #2563eb;
+        }
+
+        .new-file-link {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .link {
+            font-size: 0.875rem;
+            color: #9ca3af;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .link:hover {
+            color: white;
+        }
+
+        .instructions {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            text-align: center;
+        }
+
+        .instructions p {
+            margin-bottom: 0.25rem;
+        }
+
+        /* SVGアイコン */
+        .icon {
+            width: 24px;
+            height: 24px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .icon-small {
+            width: 16px;
+            height: 16px;
+        }
+
+        .icon-medium {
+            width: 20px;
+            height: 20px;
+        }
+
+        .icon-large {
+            width: 32px;
+            height: 32px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- ヘッダー -->
+        <div class="header">
+            <div class="title-container">
+                <svg class="icon" viewBox="0 0 24 24" style="stroke: #a855f7;">
+                    <path d="M9 18V5l12-2v13M9 9l12-2M3 9h1m0 0a2 2 0 0 0 2 2 2 2 0 0 0 2-2m-4 0a2 2 0 0 1 2-2 2 2 0 0 1 2 2m-1 7h1m0 0a2 2 0 0 0 2 2 2 2 0 0 0 2-2m-4 0a2 2 0 0 1 2-2 2 2 0 0 1 2 2"></path>
+                </svg>
+                <h1 class="title">楽曲解析リズムゲーム</h1>
+            </div>
+            <div id="fileInfo" class="file-info hidden"></div>
+            <div class="stats">
+                <span>Score: <span id="score">0</span></span>
+                <span>Combo: <span id="combo">0</span></span>
+                <span id="duration" class="hidden">Duration: <span id="durationValue">0</span>s</span>
+            </div>
+        </div>
+
+        <!-- 音楽ファイルアップロード -->
+        <label id="uploadArea" class="upload-area">
+            <svg class="icon icon-large upload-icon" viewBox="0 0 24 24">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"></path>
+            </svg>
+            <span class="upload-text">音楽ファイルをアップロード</span>
+            <div class="upload-subtext">MP3, WAV, OGG, M4A など</div>
+            <input type="file" accept="audio/*,.mp3,.wav,.ogg,.m4a,.flac,.aac" id="fileInput" class="hidden">
+        </label>
+
+        <!-- 解析状態 -->
+        <div id="analysisStatus" class="analysis-status hidden">
+            <div class="analysis-text">楽曲を解析中... <span id="progressPercent">0</span>%</div>
+            <div class="progress-bar">
+                <div id="progressFill" class="progress-fill" style="width: 0%"></div>
+            </div>
+            <div class="progress-hint">大きなファイルは時間がかかります</div>
+        </div>
+
+        <!-- 解析完了 -->
+        <div id="successStatus" class="success-status hidden">
+            <div class="success-text">解析完了！ <span id="beatCount">0</span> 個のビートを検出</div>
+            <div class="volume-control">
+                <svg class="icon icon-small" viewBox="0 0 24 24" style="stroke: #9ca3af;">
+                    <path d="M11 5L6 9H2v6h4l5 4V5zM19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                </svg>
+                <input type="range" id="volumeSlider" class="volume-slider" min="0" max="1" step="0.1" value="0.5">
+                <span class="volume-text"><span id="volumeValue">50</span>%</span>
+            </div>
+        </div>
+
+        <!-- エラー状態 -->
+        <div id="errorStatus" class="error-status hidden">
+            <div class="error-text">解析に失敗しました</div>
+            <button id="simplePatternBtn" class="simple-pattern-button">
+                <svg class="icon icon-small" viewBox="0 0 24 24">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                </svg>
+                シンプルパターンを使用
+            </button>
+            <div class="simple-hint">120 BPMの等間隔パターンを生成</div>
+        </div>
+
+        <!-- ゲームエリア -->
+        <div id="gameArea" class="game-area">
+            <!-- レーン -->
+            <div class="lanes">
+                <div class="lane"></div>
+                <div class="lane"></div>
+                <div class="lane"></div>
+                <div class="lane"></div>
+            </div>
+
+            <!-- 判定ライン -->
+            <div class="judgment-line" style="top: 350px;"></div>
+
+            <!-- ノート（動的に追加） -->
+            <div id="notesContainer"></div>
+
+            <!-- 判定テキスト -->
+            <div id="judgmentText" class="judgment-text hidden"></div>
+
+            <!-- タップエリア -->
+            <div class="tap-areas">
+                <button class="tap-area" data-lane="0">
+                    <div class="tap-key">1</div>
+                </button>
+                <button class="tap-area" data-lane="1">
+                    <div class="tap-key">2</div>
+                </button>
+                <button class="tap-area" data-lane="2">
+                    <div class="tap-key">3</div>
+                </button>
+                <button class="tap-area" data-lane="3">
+                    <div class="tap-key">4</div>
+                </button>
+            </div>
+        </div>
+
+        <!-- コントロール -->
+        <div id="controls" class="controls">
+            <button id="startBtn" class="button button-green hidden">
+                <svg class="icon icon-medium" viewBox="0 0 24 24">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+                スタート
+            </button>
+            <button id="pauseBtn" class="button button-yellow hidden">
+                <svg class="icon icon-medium" viewBox="0 0 24 24">
+                    <rect x="6" y="4" width="4" height="16"></rect>
+                    <rect x="14" y="4" width="4" height="16"></rect>
+                </svg>
+                ポーズ
+            </button>
+            <button id="resumeBtn" class="button button-yellow hidden">
+                <svg class="icon icon-medium" viewBox="0 0 24 24">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+                再開
+            </button>
+            <button id="resetBtn" class="button button-red hidden">
+                <svg class="icon icon-medium" viewBox="0 0 24 24">
+                    <polyline points="1 4 1 10 7 10"></polyline>
+                    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                </svg>
+                リセット
+            </button>
+            <button id="retryBtn" class="button button-blue hidden">
+                <svg class="icon icon-medium" viewBox="0 0 24 24">
+                    <polyline points="1 4 1 10 7 10"></polyline>
+                    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                </svg>
+                もう一度
+            </button>
+        </div>
+
+        <!-- 新しいファイル選択 -->
+        <div id="newFileArea" class="new-file-link hidden">
+            <label class="link">
+                別の楽曲を選択
+                <input type="file" accept="audio/*,.mp3,.wav,.ogg,.m4a,.flac,.aac" id="newFileInput" class="hidden">
+            </label>
+        </div>
+
+        <!-- 操作説明 -->
+        <div class="instructions">
+            <p>音楽ファイルをアップロードして、楽曲のビートに合わせてプレイ！</p>
+            <p>解析に失敗した場合は「シンプルパターン」を使用できます</p>
+            <p>キーボード操作：1, 2, 3, 4 キーでもタップできます</p>
+        </div>
+    </div>
+
+    <script>
+        // ゲーム状態管理
+        const gameState = {
+            state: 'ready',
+            score: 0,
+            combo: 0,
+            notes: [],
+            gameTime: 0,
+            audioFile: null,
+            isAnalyzing: false,
+            analysisComplete: false,
+            beatTimes: [],
+            audioBuffer: null,
+            volume: 0.5,
+            analysisProgress: 0,
+            useSimplePattern: false
+        };
+
+        // ゲーム設定
+        const NOTE_SPEED = 300;
+        const JUDGMENT_LINE_Y = 350;
+        const PERFECT_THRESHOLD = 50;
+        const GOOD_THRESHOLD = 100;
+
+        // Audio関連
+        let audioContext = null;
+        let audioSource = null;
+        let gainNode = null;
+        let gameStartTime = 0;
+        let nextNoteIndex = 0;
+        let animationFrame = null;
+
+        // DOM要素の取得
+        const elements = {
+            fileInput: document.getElementById('fileInput'),
+            newFileInput: document.getElementById('newFileInput'),
+            uploadArea: document.getElementById('uploadArea'),
+            analysisStatus: document.getElementById('analysisStatus'),
+            successStatus: document.getElementById('successStatus'),
+            errorStatus: document.getElementById('errorStatus'),
+            fileInfo: document.getElementById('fileInfo'),
+            newFileArea: document.getElementById('newFileArea'),
+            progressPercent: document.getElementById('progressPercent'),
+            progressFill: document.getElementById('progressFill'),
+            beatCount: document.getElementById('beatCount'),
+            volumeSlider: document.getElementById('volumeSlider'),
+            volumeValue: document.getElementById('volumeValue'),
+            score: document.getElementById('score'),
+            combo: document.getElementById('combo'),
+            duration: document.getElementById('duration'),
+            durationValue: document.getElementById('durationValue'),
+            notesContainer: document.getElementById('notesContainer'),
+            judgmentText: document.getElementById('judgmentText'),
+            startBtn: document.getElementById('startBtn'),
+            pauseBtn: document.getElementById('pauseBtn'),
+            resumeBtn: document.getElementById('resumeBtn'),
+            resetBtn: document.getElementById('resetBtn'),
+            retryBtn: document.getElementById('retryBtn'),
+            simplePatternBtn: document.getElementById('simplePatternBtn')
+        };
+
+        // ファイルアップロード処理
+        async function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            gameState.audioFile = file;
+            gameState.isAnalyzing = true;
+            gameState.analysisComplete = false;
+            gameState.analysisProgress = 0;
+            gameState.useSimplePattern = false;
+
+            // UI更新
+            elements.uploadArea.classList.add('hidden');
+            elements.analysisStatus.classList.remove('hidden');
+            elements.fileInfo.textContent = file.name;
+            elements.fileInfo.classList.remove('hidden');
+            elements.newFileArea.classList.remove('hidden');
+
+            try {
+                // Audio Context初期化
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+
+                updateProgress(20);
+
+                // ファイル読み込み
+                const arrayBuffer = await file.arrayBuffer();
+                updateProgress(40);
+
+                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                gameState.audioBuffer = audioBuffer;
+                updateProgress(60);
+
+                // 音楽解析
+                const beats = await analyzeMusicLight(audioBuffer);
+                gameState.beatTimes = beats;
+
+                updateProgress(100);
+                gameState.isAnalyzing = false;
+                gameState.analysisComplete = true;
+
+                // UI更新
+                elements.analysisStatus.classList.add('hidden');
+                elements.successStatus.classList.remove('hidden');
+                elements.beatCount.textContent = beats.length;
+                elements.duration.classList.remove('hidden');
+                elements.durationValue.textContent = Math.floor(audioBuffer.duration);
+                elements.startBtn.classList.remove('hidden');
+
+            } catch (error) {
+                console.error('音楽解析エラー:', error);
+                gameState.isAnalyzing = false;
+                gameState.analysisProgress = 0;
+                
+                // エラーUI表示
+                elements.analysisStatus.classList.add('hidden');
+                elements.errorStatus.classList.remove('hidden');
+            }
+        }
+
+        // 進捗更新
+        function updateProgress(percent) {
+            gameState.analysisProgress = percent;
+            elements.progressPercent.textContent = Math.floor(percent);
+            elements.progressFill.style.width = percent + '%';
+        }
+
+        // 軽量化された音楽解析
+        async function analyzeMusicLight(audioBuffer) {
+            const channelData = audioBuffer.getChannelData(0);
+            const sampleRate = audioBuffer.sampleRate;
+            const duration = audioBuffer.duration;
+            const beats = [];
+
+            // データを間引いて処理速度を向上
+            const downsampleRate = 4;
+            const downsampledData = [];
+            for (let i = 0; i < channelData.length; i += downsampleRate) {
+                downsampledData.push(channelData[i]);
+            }
+
+            const effectiveSampleRate = sampleRate / downsampleRate;
+            const windowSize = Math.floor(effectiveSampleRate * 0.1);
+            const hopSize = Math.floor(effectiveSampleRate * 0.2);
+
+            let energyHistory = [];
+            const energyHistorySize = 10;
+
+            for (let i = 0; i < downsampledData.length - windowSize; i += hopSize) {
+                // 進捗更新
+                const progress = 60 + (i / downsampledData.length) * 40;
+                updateProgress(Math.floor(progress));
+
+                // エネルギー計算（RMS）
+                let energy = 0;
+                for (let j = i; j < i + windowSize; j++) {
+                    energy += downsampledData[j] * downsampledData[j];
+                }
+                energy = Math.sqrt(energy / windowSize);
+
+                energyHistory.push(energy);
+                if (energyHistory.length > energyHistorySize) {
+                    energyHistory.shift();
+                }
+
+                // シンプルなビート検出
+                if (energyHistory.length === energyHistorySize) {
+                    const avgEnergy = energyHistory.reduce((a, b) => a + b, 0) / energyHistory.length;
+                    const maxEnergy = Math.max(...energyHistory);
+                    const threshold = avgEnergy * 1.5;
+
+                    const currentTime = (i * downsampleRate) / sampleRate;
+                    
+                    if (energy > threshold && energy > maxEnergy * 0.8) {
+                        // 近接するビートを除外
+                        const lastBeat = beats[beats.length - 1];
+                        if (!lastBeat || currentTime - lastBeat > 0.4) {
+                            beats.push(currentTime);
+                        }
+                    }
+                }
+
+                // 処理を他のタスクに譲る
+                if (i % 1000 === 0) {
+                    await new Promise(resolve => setTimeout(resolve, 0));
+                }
+            }
+
+            // ビートが少ない場合は等間隔で補完
+            if (beats.length < 10) {
+                const bpm = 120;
+                const beatInterval = 60 / bpm;
+                const supplementaryBeats = [];
+                
+                for (let time = 0; time < duration; time += beatInterval) {
+                    supplementaryBeats.push(time);
+                }
+                
+                return supplementaryBeats;
+            }
+
+            return beats.sort((a, b) => a - b);
+        }
+
+        // シンプルパターン生成
+        function generateSimplePattern() {
+            if (!gameState.audioBuffer) return;
+
+            const duration = gameState.audioBuffer.duration;
+            const bpm = 120;
+            const beatInterval = 60 / bpm;
+            const beats = [];
+
+            for (let time = 0.5; time < duration - 0.5; time += beatInterval) {
+                beats.push(time);
+            }
+
+            gameState.beatTimes = beats;
+            gameState.analysisComplete = true;
+            gameState.useSimplePattern = true;
+
+            // UI更新
+            elements.errorStatus.classList.add('hidden');
+            elements.successStatus.classList.remove('hidden');
+            elements.beatCount.textContent = beats.length;
+            elements.duration.classList.remove('hidden');
+            elements.durationValue.textContent = Math.floor(gameState.audioBuffer.duration);
+            elements.startBtn.classList.remove('hidden');
+
+            // ファイル情報更新
+            if (gameState.useSimplePattern) {
+                elements.fileInfo.innerHTML = gameState.audioFile.name + '<span class="simple-pattern">(シンプルパターン)</span>';
+            }
+        }
+
+        // 音楽再生
+        function playMusic() {
+            if (!gameState.audioBuffer || !audioContext) return;
+
+            if (audioSource) {
+                audioSource.stop();
+            }
+
+            audioSource = audioContext.createBufferSource();
+            audioSource.buffer = gameState.audioBuffer;
+
+            if (!gainNode) {
+                gainNode = audioContext.createGain();
+            }
+            gainNode.gain.value = gameState.volume;
+
+            audioSource.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            audioSource.start();
+        }
+
+        // タップ音生成
+        function playTapSound(type = 'hit') {
+            if (!audioContext) return;
+
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            // タップ音のタイプによって音程を変える
+            if (type === 'perfect') {
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1);
+            } else if (type === 'good') {
+                oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(300, audioContext.currentTime + 0.1);
+            } else if (type === 'miss') {
+                oscillator.frequency.setValueAtTime(150, audioContext.currentTime);
+                oscillator.type = 'square';
+            } else {
+                // 通常のタップ音
+                oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.1);
+            }
+
+            // 音量エンベロープ
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.15);
+        }
+
+        // ゲーム開始
+        function startGame() {
+            if (!gameState.analysisComplete || !gameState.beatTimes.length) return;
+
+            gameState.state = 'playing';
+            gameState.score = 0;
+            gameState.combo = 0;
+            gameState.notes = [];
+            gameState.gameTime = 0;
+            gameStartTime = Date.now();
+            nextNoteIndex = 0;
+
+            updateScore();
+            updateCombo();
+            showGameControls();
+
+            playMusic();
+            gameLoop();
+        }
+
+        // ゲーム一時停止・再開
+        function togglePause() {
+            if (gameState.state === 'playing') {
+                gameState.state = 'paused';
+                if (audioSource) {
+                    audioSource.stop();
+                }
+                elements.pauseBtn.classList.add('hidden');
+                elements.resumeBtn.classList.remove('hidden');
+            } else if (gameState.state === 'paused') {
+                gameState.state = 'playing';
+                playMusic();
+                elements.pauseBtn.classList.remove('hidden');
+                elements.resumeBtn.classList.add('hidden');
+            }
+        }
+
+        // ゲームリセット
+        function resetGame() {
+            gameState.state = 'ready';
+            gameState.score = 0;
+            gameState.combo = 0;
+            gameState.notes = [];
+            gameState.gameTime = 0;
+            
+            if (audioSource) {
+                audioSource.stop();
+            }
+            
+            if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+            }
+
+            clearNotes();
+            updateScore();
+            updateCombo();
+            hideJudgment();
+            showInitialControls();
+        }
+
+        // タップ処理
+        function handleTap(lane) {
+            if (gameState.state !== 'playing') return;
+
+            let hitNote = null;
+            let minDistance = Infinity;
+
+            gameState.notes.forEach(note => {
+                if (note.lane === lane && !note.hit) {
+                    const distance = Math.abs(note.y - JUDGMENT_LINE_Y);
+                    if (distance < minDistance && distance < GOOD_THRESHOLD) {
+                        minDistance = distance;
+                        hitNote = note;
+                    }
+                }
+            });
+
+            if (hitNote) {
+                hitNote.hit = true;
+                let points = 0;
+                let judgment = '';
+                let soundType = 'hit';
+
+                if (minDistance < PERFECT_THRESHOLD) {
+                    points = 100;
+                    judgment = 'PERFECT!';
+                    soundType = 'perfect';
+                    gameState.combo++;
+                } else if (minDistance < GOOD_THRESHOLD) {
+                    points = 50;
+                    judgment = 'GOOD!';
+                    soundType = 'good';
+                    gameState.combo++;
+                }
+
+                playTapSound(soundType);
+                gameState.score += points;
+                updateScore();
+                updateCombo();
+                showJudgment(judgment);
+
+                // ノートを削除
+                const noteElement = document.getElementById(`note-${hitNote.id}`);
+                if (noteElement) {
+                    noteElement.remove();
+                }
+                gameState.notes = gameState.notes.filter(note => note.id !== hitNote.id);
+            } else {
+                gameState.combo = 0;
+                updateCombo();
+                showJudgment('MISS!');
+                playTapSound('miss');
+            }
+        }
+
+        // 判定表示
+        function showJudgment(judgment) {
+            elements.judgmentText.textContent = judgment;
+            elements.judgmentText.className = 'judgment-text';
+            
+            if (judgment === 'PERFECT!') {
+                elements.judgmentText.classList.add('judgment-perfect');
+            } else if (judgment === 'GOOD!') {
+                elements.judgmentText.classList.add('judgment-good');
+            } else {
+                elements.judgmentText.classList.add('judgment-miss');
+            }
+            
+            elements.judgmentText.classList.remove('hidden');
+            
+            setTimeout(() => {
+                elements.judgmentText.classList.add('hidden');
+            }, 500);
+        }
+
+        function hideJudgment() {
+            elements.judgmentText.classList.add('hidden');
+        }
+
+        // スコア・コンボ更新
+        function updateScore() {
+            elements.score.textContent = gameState.score;
+        }
+
+        function updateCombo() {
+            elements.combo.textContent = gameState.combo;
+        }
+
+        // ノート管理
+        function createNoteElement(note) {
+            const noteElement = document.createElement('div');
+            noteElement.id = `note-${note.id}`;
+            noteElement.className = 'note';
+            noteElement.style.left = `${(note.lane + 0.5) * 25}%`;
+            noteElement.style.top = `${note.y}px`;
+            return noteElement;
+        }
+
+        function clearNotes() {
+            elements.notesContainer.innerHTML = '';
+        }
+
+        // ゲームループ
+        function gameLoop() {
+            const currentTime = (Date.now() - gameStartTime) / 1000;
+            gameState.gameTime = currentTime * 1000;
+
+            if (gameState.audioBuffer && currentTime >= gameState.audioBuffer.duration) {
+                gameState.state = 'finished';
+                showFinishControls();
+                return;
+            }
+
+            // 新しいノートを生成
+            while (nextNoteIndex < gameState.beatTimes.length) {
+                const beatTime = gameState.beatTimes[nextNoteIndex];
+                const appearTime = beatTime - 2;
+                
+                if (appearTime <= currentTime) {
+                    const lane = Math.floor(Math.random() * 4);
+                    const noteId = Date.now() + Math.random();
+                    
+                    const note = {
+                        id: noteId,
+                        lane: lane,
+                        y: -50,
+                        targetTime: beatTime,
+                        hit: false
+                    };
+                    
+                    gameState.notes.push(note);
+                    
+                    // DOM要素作成
+                    const noteElement = createNoteElement(note);
+                    elements.notesContainer.appendChild(noteElement);
+                    
+                    nextNoteIndex++;
+                } else {
+                    break;
+                }
+            }
+
+            // ノートの位置を更新
+            gameState.notes.forEach(note => {
+                if (!note.hit) {
+                    const timeDiff = currentTime - note.targetTime + 2;
+                    const newY = (timeDiff / 2) * (JUDGMENT_LINE_Y + 50);
+                    note.y = newY;
+                    
+                    const noteElement = document.getElementById(`note-${note.id}`);
+                    if (noteElement) {
+                        noteElement.style.top = `${newY}px`;
+                        if (note.hit) {
+                            noteElement.classList.add('hit');
+                        }
+                    }
+                }
+            });
+
+            // 画面外のノートを削除
+            gameState.notes = gameState.notes.filter(note => {
+                if (!note.hit && note.y > JUDGMENT_LINE_Y + GOOD_THRESHOLD) {
+                    gameState.combo = 0;
+                    updateCombo();
+                    
+                    const noteElement = document.getElementById(`note-${note.id}`);
+                    if (noteElement) {
+                        noteElement.remove();
+                    }
+                    return false;
+                }
+                return true;
+            });
+
+            if (gameState.state === 'playing') {
+                animationFrame = requestAnimationFrame(gameLoop);
+            }
+        }
+
+        // コントロール表示管理
+        function showInitialControls() {
+            elements.startBtn.classList.remove('hidden');
+            elements.pauseBtn.classList.add('hidden');
+            elements.resumeBtn.classList.add('hidden');
+            elements.resetBtn.classList.add('hidden');
+            elements.retryBtn.classList.add('hidden');
+        }
+
+        function showGameControls() {
+            elements.startBtn.classList.add('hidden');
+            elements.pauseBtn.classList.remove('hidden');
+            elements.resumeBtn.classList.add('hidden');
+            elements.resetBtn.classList.remove('hidden');
+            elements.retryBtn.classList.add('hidden');
+        }
+
+        function showFinishControls() {
+            elements.startBtn.classList.add('hidden');
+            elements.pauseBtn.classList.add('hidden');
+            elements.resumeBtn.classList.add('hidden');
+            elements.resetBtn.classList.add('hidden');
+            elements.retryBtn.classList.remove('hidden');
+        }
+
+        // イベントリスナー設定
+        elements.fileInput.addEventListener('change', handleFileUpload);
+        elements.newFileInput.addEventListener('change', handleFileUpload);
+        elements.simplePatternBtn.addEventListener('click', generateSimplePattern);
+        elements.startBtn.addEventListener('click', startGame);
+        elements.pauseBtn.addEventListener('click', togglePause);
+        elements.resumeBtn.addEventListener('click', togglePause);
+        elements.resetBtn.addEventListener('click', resetGame);
+        elements.retryBtn.addEventListener('click', resetGame);
+
+        // 音量調整
+        elements.volumeSlider.addEventListener('input', (e) => {
+            gameState.volume = parseFloat(e.target.value);
+            elements.volumeValue.textContent = Math.floor(gameState.volume * 100);
+            if (gainNode) {
+                gainNode.gain.value = gameState.volume;
+            }
+        });
+
+        // タップエリアのイベント
+        document.querySelectorAll('.tap-area').forEach(area => {
+            const lane = parseInt(area.dataset.lane);
+            
+            area.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                handleTap(lane);
+            });
+            
+            area.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                handleTap(lane);
+            });
+        });
+
+        // キーボード操作
+        window.addEventListener('keydown', (event) => {
+            if (gameState.state !== 'playing') return;
+            
+            const key = event.key;
+            let lane = -1;
+            
+            switch(key) {
+                case '1':
+                    lane = 0;
+                    break;
+                case '2':
+                    lane = 1;
+                    break;
+                case '3':
+                    lane = 2;
+                    break;
+                case '4':
+                    lane = 3;
+                    break;
+                default:
+                    return;
+            }
+            
+            if (lane >= 0) {
+                event.preventDefault();
+                handleTap(lane);
+            }
+        });
+    </script>
+</body>
+</html>
