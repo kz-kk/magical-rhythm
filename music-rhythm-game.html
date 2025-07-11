@@ -748,60 +748,7 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            gameState.audioFile = file;
-            gameState.isAnalyzing = true;
-            gameState.analysisComplete = false;
-            gameState.analysisProgress = 0;
-            gameState.useSimplePattern = false;
-
-            // UI更新
-            elements.uploadArea.classList.add('hidden');
-            elements.analysisStatus.classList.remove('hidden');
-            elements.fileInfo.textContent = file.name;
-            elements.fileInfo.classList.remove('hidden');
-            elements.newFileArea.classList.remove('hidden');
-
-            try {
-                // Audio Context初期化
-                if (!audioContext) {
-                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                }
-
-                updateProgress(20);
-
-                // ファイル読み込み
-                const arrayBuffer = await file.arrayBuffer();
-                updateProgress(40);
-
-                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-                gameState.audioBuffer = audioBuffer;
-                updateProgress(60);
-
-                // 音楽解析
-                const beats = await analyzeMusicLight(audioBuffer);
-                gameState.beatTimes = beats;
-
-                updateProgress(100);
-                gameState.isAnalyzing = false;
-                gameState.analysisComplete = true;
-
-                // UI更新
-                elements.analysisStatus.classList.add('hidden');
-                elements.successStatus.classList.remove('hidden');
-                elements.beatCount.textContent = beats.length;
-                elements.duration.classList.remove('hidden');
-                elements.durationValue.textContent = Math.floor(audioBuffer.duration);
-                showDifficultySelection();
-
-            } catch (error) {
-                console.error('音楽解析エラー:', error);
-                gameState.isAnalyzing = false;
-                gameState.analysisProgress = 0;
-                
-                // エラーUI表示
-                elements.analysisStatus.classList.add('hidden');
-                elements.errorStatus.classList.remove('hidden');
-            }
+            await processAudioFile(file);
         }
 
         // 進捗更新
@@ -1312,6 +1259,99 @@
                 event.preventDefault();
                 handleTap(lane);
             }
+        });
+
+        // デフォルト音楽ファイルを読み込む関数
+        async function loadDefaultMusic() {
+            try {
+                // デフォルトファイルのパス
+                const defaultMusicPath = './assets/sounds/hyper_dream_dash.mp3';
+                
+                // ファイルをfetchで読み込み
+                const response = await fetch(defaultMusicPath);
+                if (!response.ok) {
+                    console.log('デフォルト音楽ファイルが見つかりません - アップロードエリアを表示します');
+                    // アップロードエリアを表示
+                    elements.uploadArea.classList.remove('hidden');
+                    return;
+                }
+                
+                const blob = await response.blob();
+                
+                // Fileオブジェクトを作成
+                const file = new File([blob], 'hyper_dream_dash.mp3', { type: 'audio/mp3' });
+                
+                // ファイルアップロード処理を実行
+                await processAudioFile(file);
+                
+            } catch (error) {
+                console.log('デフォルト音楽ファイルの読み込みに失敗:', error);
+                // エラー時はアップロードエリアを表示
+                elements.uploadArea.classList.remove('hidden');
+            }
+        }
+
+        // 音楽ファイル処理を共通化
+        async function processAudioFile(file) {
+            gameState.audioFile = file;
+            gameState.isAnalyzing = true;
+            gameState.analysisComplete = false;
+            gameState.analysisProgress = 0;
+            gameState.useSimplePattern = false;
+
+            // UI更新
+            elements.uploadArea.classList.add('hidden');
+            elements.analysisStatus.classList.remove('hidden');
+            elements.fileInfo.textContent = file.name;
+            elements.fileInfo.classList.remove('hidden');
+            elements.newFileArea.classList.remove('hidden');
+
+            try {
+                // Audio Context初期化
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+
+                updateProgress(20);
+
+                // ファイル読み込み
+                const arrayBuffer = await file.arrayBuffer();
+                updateProgress(40);
+
+                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                gameState.audioBuffer = audioBuffer;
+                updateProgress(60);
+
+                // 音楽解析
+                const beats = await analyzeMusicLight(audioBuffer);
+                gameState.beatTimes = beats;
+
+                updateProgress(100);
+                gameState.isAnalyzing = false;
+                gameState.analysisComplete = true;
+
+                // UI更新
+                elements.analysisStatus.classList.add('hidden');
+                elements.successStatus.classList.remove('hidden');
+                elements.beatCount.textContent = beats.length;
+                elements.duration.classList.remove('hidden');
+                elements.durationValue.textContent = Math.floor(audioBuffer.duration);
+                showDifficultySelection();
+
+            } catch (error) {
+                console.error('音楽解析エラー:', error);
+                gameState.isAnalyzing = false;
+                gameState.analysisProgress = 0;
+                
+                // エラーUI表示
+                elements.analysisStatus.classList.add('hidden');
+                elements.errorStatus.classList.remove('hidden');
+            }
+        }
+
+        // ページ読み込み時にデフォルト音楽を読み込み
+        window.addEventListener('DOMContentLoaded', () => {
+            loadDefaultMusic();
         });
     </script>
 </body>
