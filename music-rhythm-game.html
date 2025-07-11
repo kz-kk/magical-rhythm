@@ -17,7 +17,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 1rem;
+            padding: 0.5rem;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
 
@@ -25,34 +25,100 @@
             background: rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(12px);
             border-radius: 1rem;
-            padding: 1.5rem;
+            padding: 1rem;
             width: 100%;
-            max-width: 448px;
+            max-width: 400px;
+        }
+
+        /* モバイル最適化 */
+        @media (max-width: 480px) {
+            body {
+                padding: 0.25rem;
+            }
+            
+            .game-container {
+                padding: 0.75rem;
+                max-width: 100%;
+            }
+            
+            .title {
+                font-size: 1.125rem;
+            }
+            
+            .file-info {
+                font-size: 0.625rem;
+            }
+            
+            .stats {
+                font-size: 0.625rem;
+            }
+            
+            .game-area {
+                height: 300px;
+            }
+            
+            .tap-areas {
+                height: 50px;
+            }
+            
+            .tap-area {
+                font-size: 0.625rem;
+            }
+            
+            .note {
+                height: 35px;
+            }
+            
+            .judgment-text {
+                font-size: 1rem;
+            }
+            
+            .button {
+                font-size: 0.625rem;
+                padding: 0.5rem 0.75rem;
+            }
+            
+            .difficulty-btn {
+                font-size: 0.625rem;
+                padding: 0.5rem 0.5rem;
+            }
+            
+            .start-btn {
+                font-size: 0.625rem;
+                padding: 0.5rem 0.5rem;
+                margin-left:10px;
+            }
+            
+            
+            .instructions {
+                font-size: 0.5rem;
+            }
         }
 
         .header {
             text-align: center;
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
         }
 
         .title-container {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem;
-            margin-bottom: 0.5rem;
+            gap: 0.25rem;
+            margin-bottom: 0.25rem;
         }
 
         .title {
-            font-size: 1.5rem;
+            font-size: 1.25rem;
             font-weight: bold;
             color: white;
         }
 
         .file-info {
-            font-size: 0.875rem;
+            font-size: 0.75rem;
             color: #d1d5db;
             margin-bottom: 0.5rem;
+            word-break: break-all;
         }
 
         .simple-pattern {
@@ -63,14 +129,16 @@
         .stats {
             display: flex;
             justify-content: space-between;
-            font-size: 0.875rem;
+            font-size: 0.75rem;
             color: #d1d5db;
+            flex-wrap: wrap;
+            gap: 0.25rem;
         }
 
         .upload-area {
             display: block;
             width: 100%;
-            padding: 1.5rem;
+            padding: 1rem;
             border: 2px dashed #9ca3af;
             border-radius: 0.5rem;
             text-align: center;
@@ -106,12 +174,13 @@
 
         .analysis-status {
             text-align: center;
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
         }
 
         .analysis-text {
             color: #facc15;
             margin-bottom: 0.5rem;
+            font-size: 0.875rem;
         }
 
         .progress-bar {
@@ -137,19 +206,21 @@
 
         .success-status {
             text-align: center;
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
         }
 
         .success-text {
             color: #10b981;
             margin-bottom: 0.5rem;
+            font-size: 0.875rem;
         }
 
         .volume-control {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.25rem;
             margin-bottom: 0.5rem;
+            font-size: 0.75rem;
         }
 
         .volume-slider {
@@ -157,24 +228,27 @@
         }
 
         .volume-text {
-            font-size: 0.875rem;
+            font-size: 0.625rem;
             color: #d1d5db;
+            min-width: 32px;
         }
 
         .error-status {
             text-align: center;
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
         }
 
         .error-text {
             color: #ef4444;
             margin-bottom: 0.5rem;
+            font-size: 0.875rem;
         }
 
         .simple-pattern-button {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            justify-content: center;
+            gap: 0.25rem;
             background: #3b82f6;
             color: white;
             padding: 0.5rem 1rem;
@@ -183,6 +257,8 @@
             cursor: pointer;
             transition: background 0.3s;
             margin: 0 auto;
+            font-size: 0.75rem;
+            font-weight: 500;
         }
 
         .simple-pattern-button:hover {
@@ -201,7 +277,7 @@
             border-radius: 0.75rem;
             overflow: hidden;
             margin-bottom: 1rem;
-            height: 400px;
+            height: 350px;
         }
 
         .lanes {
@@ -231,11 +307,11 @@
         .note {
             position: absolute;
             width: 25%;
-            height: 48px;
+            height: 40px;
             background: linear-gradient(to bottom, #ec4899, #a855f7);
-            border-radius: 0.5rem;
-            border: 2px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border-radius: 0.25rem;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.1);
             transform: translateX(-50%);
         }
 
@@ -245,10 +321,10 @@
 
         .judgment-text {
             position: absolute;
-            top: 50%;
+            top: 40%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 1.5rem;
+            font-size: 1.25rem;
             font-weight: bold;
             animation: pulse 0.5s;
         }
@@ -269,7 +345,7 @@
             left: 0;
             right: 0;
             display: flex;
-            height: 80px;
+            height: 60px;
         }
 
         .tap-area {
@@ -279,7 +355,7 @@
             border-right: 1px solid rgba(255, 255, 255, 0.2);
             color: rgba(255, 255, 255, 0.5);
             font-weight: bold;
-            font-size: 0.875rem;
+            font-size: 0.75rem;
             cursor: pointer;
             transition: background 0.3s;
             position: relative;
@@ -308,21 +384,23 @@
         .controls {
             display: flex;
             justify-content: center;
-            gap: 1rem;
-            margin-bottom: 1rem;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
         }
 
         .button {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1.5rem;
+            justify-content: center;
+            gap: 0.25rem;
+            padding: 0.5rem 1rem;
             border-radius: 0.5rem;
             border: none;
             color: white;
             cursor: pointer;
             transition: background 0.3s;
-            font-size: 1rem;
+            font-size: 0.75rem;
+            font-weight: 500;
         }
 
         .button-green {
@@ -374,9 +452,10 @@
         }
 
         .instructions {
-            font-size: 0.75rem;
+            font-size: 0.625rem;
             color: #9ca3af;
             text-align: center;
+            line-height: 1.4;
         }
 
         .instructions p {
@@ -385,8 +464,8 @@
 
         /* SVGアイコン */
         .icon {
-            width: 24px;
-            height: 24px;
+            width: 20px;
+            height: 20px;
             fill: none;
             stroke: currentColor;
             stroke-width: 2;
@@ -395,37 +474,39 @@
         }
 
         .icon-small {
+            width: 14px;
+            height: 14px;
+        }
+
+        .icon-medium {
             width: 16px;
             height: 16px;
         }
 
-        .icon-medium {
-            width: 20px;
-            height: 20px;
-        }
-
         .icon-large {
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
         }
 
         .difficulty-text {
             text-align: center;
             color: #d1d5db;
-            margin-bottom: 1rem;
-            font-size: 1rem;
+            margin-bottom: 0.75rem;
+            font-size: 0.875rem;
         }
 
         .difficulty-buttons {
             display: flex;
-            gap: 1rem;
-            margin-bottom: 1rem;
+            gap: 0.25rem;
+            margin-bottom: 0.5rem;
         }
 
         .difficulty-btn {
             flex: 1;
-            opacity: 0.5;
+            opacity: 0.6;
             transition: opacity 0.3s;
+            padding: 0.5rem 0.5rem;
+            font-size: 0.625rem;
         }
 
         .difficulty-btn.active {
@@ -433,8 +514,10 @@
         }
 
         .start-btn {
-            width: 100%;
+            flex: 1;
+            opacity: 1;
         }
+
     </style>
 </head>
 <body>
@@ -445,7 +528,7 @@
                 <svg class="icon" viewBox="0 0 24 24" style="stroke: #a855f7;">
                     <path d="M9 18V5l12-2v13M9 9l12-2M3 9h1m0 0a2 2 0 0 0 2 2 2 2 0 0 0 2-2m-4 0a2 2 0 0 1 2-2 2 2 0 0 1 2 2m-1 7h1m0 0a2 2 0 0 0 2 2 2 2 0 0 0 2-2m-4 0a2 2 0 0 1 2-2 2 2 0 0 1 2 2"></path>
                 </svg>
-                <h1 class="title">楽曲解析リズムゲーム</h1>
+                <h1 class="title">MAGICAL RHYTHM</h1>
             </div>
             <div id="fileInfo" class="file-info hidden"></div>
             <div class="stats">
@@ -460,23 +543,23 @@
             <svg class="icon icon-large upload-icon" viewBox="0 0 24 24">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"></path>
             </svg>
-            <span class="upload-text">音楽ファイルをアップロード</span>
-            <div class="upload-subtext">MP3, WAV, OGG, M4A など</div>
+            <span class="upload-text">UPLOAD</span>
+            <div class="upload-subtext">MP3</div>
             <input type="file" accept="audio/*,.mp3,.wav,.ogg,.m4a,.flac,.aac" id="fileInput" class="hidden">
         </label>
 
         <!-- 解析状態 -->
         <div id="analysisStatus" class="analysis-status hidden">
-            <div class="analysis-text">楽曲を解析中... <span id="progressPercent">0</span>%</div>
+            <div class="analysis-text">Analyzing music... <span id="progressPercent">0</span>%</div>
             <div class="progress-bar">
                 <div id="progressFill" class="progress-fill" style="width: 0%"></div>
             </div>
-            <div class="progress-hint">大きなファイルは時間がかかります</div>
+            <div class="progress-hint">Large files may take longer to process</div>
         </div>
 
         <!-- 解析完了 -->
         <div id="successStatus" class="success-status hidden">
-            <div class="success-text">解析完了！ <span id="beatCount">0</span> 個のビートを検出</div>
+            <div class="success-text">Analysis complete! <span id="beatCount">0</span> beats detected</div>
             <div class="volume-control">
                 <svg class="icon icon-small" viewBox="0 0 24 24" style="stroke: #9ca3af;">
                     <path d="M11 5L6 9H2v6h4l5 4V5zM19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
@@ -488,7 +571,7 @@
 
         <!-- 難易度選択 -->
         <div id="difficultySelection" class="controls hidden">
-            <div class="difficulty-text">難易度を選択してください</div>
+            <!-- <div class="difficulty-text">難易度を選択してください</div> -->
             <div class="difficulty-buttons">
                 <button id="easyBtn" class="button button-green difficulty-btn active">
                     <svg class="icon icon-small" viewBox="0 0 24 24">
@@ -497,19 +580,25 @@
                     </svg>
                     Easy
                 </button>
+                <button id="normalBtn" class="button button-yellow difficulty-btn">
+                    <svg class="icon icon-small" viewBox="0 0 24 24">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                    </svg>
+                    Normal
+                </button>
                 <button id="hardBtn" class="button button-red difficulty-btn">
                     <svg class="icon icon-small" viewBox="0 0 24 24">
                         <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                     </svg>
                     Hard
                 </button>
+                <button id="startBtn" class="button button-blue start-btn">
+                    <svg class="icon icon-small" viewBox="0 0 24 24">
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                    START
+                </button>
             </div>
-            <button id="startBtn" class="button button-blue start-btn">
-                <svg class="icon icon-medium" viewBox="0 0 24 24">
-                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                </svg>
-                スタート
-            </button>
         </div>
 
         <!-- エラー状態 -->
@@ -535,7 +624,7 @@
             </div>
 
             <!-- 判定ライン -->
-            <div class="judgment-line" style="top: 350px;"></div>
+            <div class="judgment-line" style="top: 290px;"></div>
 
             <!-- ノート（動的に追加） -->
             <div id="notesContainer"></div>
@@ -567,7 +656,7 @@
                     <polyline points="1 4 1 10 7 10"></polyline>
                     <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
                 </svg>
-                リセット
+                RESET                
             </button>
         </div>
 
@@ -577,7 +666,7 @@
                 <svg class="icon icon-medium" viewBox="0 0 24 24">
                     <path d="M9 18V5l12-2v13M9 9l12-2M3 9h1m0 0a2 2 0 0 0 2 2 2 2 0 0 0 2-2m-4 0a2 2 0 0 1 2-2 2 2 0 0 1 2 2m-1 7h1m0 0a2 2 0 0 0 2 2 2 2 0 0 0 2-2m-4 0a2 2 0 0 1 2-2 2 2 0 0 1 2 2"></path>
                 </svg>
-                別の楽曲を選択
+                Select Another Song
                 <input type="file" accept="audio/*,.mp3,.wav,.ogg,.m4a,.flac,.aac" id="newFileInput" class="hidden">
             </label>
         </div>
@@ -606,14 +695,14 @@
             volume: 0.5,
             analysisProgress: 0,
             useSimplePattern: false,
-            difficulty: 'easy' // 'easy' or 'hard'
+            difficulty: 'easy' // 'easy', 'normal', or 'hard'
         };
 
         // ゲーム設定
         const NOTE_SPEED = 300;
-        const JUDGMENT_LINE_Y = 350;
-        const PERFECT_THRESHOLD = 50;
-        const GOOD_THRESHOLD = 100;
+        const JUDGMENT_LINE_Y = 290; // ゲームエリア縮小に合わせて調整
+        const PERFECT_THRESHOLD = 40; // より厳密に
+        const GOOD_THRESHOLD = 80; // より厳密に
 
         // Audio関連
         let audioContext = null;
@@ -648,6 +737,7 @@
             resetBtn: document.getElementById('resetBtn'),
             difficultySelection: document.getElementById('difficultySelection'),
             easyBtn: document.getElementById('easyBtn'),
+            normalBtn: document.getElementById('normalBtn'),
             hardBtn: document.getElementById('hardBtn'),
             startBtn: document.getElementById('startBtn'),
             simplePatternBtn: document.getElementById('simplePatternBtn')
@@ -894,6 +984,7 @@
         function selectDifficulty(difficulty) {
             gameState.difficulty = difficulty;
             elements.easyBtn.classList.toggle('active', difficulty === 'easy');
+            elements.normalBtn.classList.toggle('active', difficulty === 'normal');
             elements.hardBtn.classList.toggle('active', difficulty === 'hard');
         }
 
@@ -1060,11 +1151,26 @@
             // 新しいノートを生成
             while (nextNoteIndex < gameState.beatTimes.length) {
                 const beatTime = gameState.beatTimes[nextNoteIndex];
-                const appearTime = beatTime - 2;
+                const appearTime = beatTime - 1.8; // タイミング調整: 2秒 → 1.8秒
                 
                 if (appearTime <= currentTime) {
-                    // Hardモードでは複数のノートを生成
-                    const noteCount = gameState.difficulty === 'hard' ? Math.floor(Math.random() * 2) + 1 : 1;
+                    // 難易度によってノート数を変更
+                    let noteCount = 1;
+                    if (gameState.difficulty === 'normal') {
+                        noteCount = Math.floor(Math.random() * 2) + 1; // 1-2個
+                    } else if (gameState.difficulty === 'hard') {
+                        // Hardモード: 縦に多くノートを生成
+                        // ビートごとに追加ノートを生成するか決める
+                        noteCount = Math.floor(Math.random() * 3) + 1; // 1-3個(横は最大3個)
+                        
+                        // Hardモードでは追加のノートをランダムに生成
+                        if (Math.random() < 0.4) { // 40%の確率で追加ノート
+                            // 0.2-0.6秒後に追加ノートを生成
+                            const extraBeatTime = beatTime + (Math.random() * 0.4 + 0.2);
+                            gameState.beatTimes.splice(nextNoteIndex + 1, 0, extraBeatTime);
+                        }
+                    }
+                    
                     const usedLanes = new Set();
                     
                     for (let i = 0; i < noteCount; i++) {
@@ -1100,8 +1206,8 @@
             // ノートの位置を更新
             gameState.notes.forEach(note => {
                 if (!note.hit) {
-                    const timeDiff = currentTime - note.targetTime + 2;
-                    const newY = (timeDiff / 2) * (JUDGMENT_LINE_Y + 50);
+                    const timeDiff = currentTime - note.targetTime + 1.8; // タイミング調整
+                    const newY = (timeDiff / 1.8) * (JUDGMENT_LINE_Y + 50); // 速度調整
                     note.y = newY;
                     
                     const noteElement = document.getElementById(`note-${note.id}`);
@@ -1151,6 +1257,7 @@
         elements.startBtn.addEventListener('click', startGame);
         elements.resetBtn.addEventListener('click', resetGame);
         elements.easyBtn.addEventListener('click', () => selectDifficulty('easy'));
+        elements.normalBtn.addEventListener('click', () => selectDifficulty('normal'));
         elements.hardBtn.addEventListener('click', () => selectDifficulty('hard'));
 
         // 音量調整
