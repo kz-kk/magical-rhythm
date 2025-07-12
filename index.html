@@ -1106,15 +1106,32 @@
                     if (gameState.difficulty === 'normal') {
                         noteCount = Math.floor(Math.random() * 2) + 1; // 1-2個
                     } else if (gameState.difficulty === 'hard') {
-                        // Hardモード: 縦に多くノートを生成
-                        // ビートごとに追加ノートを生成するか決める
-                        noteCount = Math.floor(Math.random() * 3) + 1; // 1-3個(横は最大3個)
+                        // Hardモード: 散りばめたノートパターン
+                        noteCount = Math.floor(Math.random() * 2) + 1; // 1-2個(横は最大2個)
                         
-                        // Hardモードでは追加のノートをランダムに生成
-                        if (Math.random() < 0.4) { // 40%の確率で追加ノート
-                            // 0.2-0.6秒後に追加ノートを生成
-                            const extraBeatTime = beatTime + (Math.random() * 0.4 + 0.2);
-                            gameState.beatTimes.splice(nextNoteIndex + 1, 0, extraBeatTime);
+                        // 連続ノートを生成 (最大2個まで)
+                        if (Math.random() < 0.25) { // 25%の確率で連続ノート
+                            // 1つだけ追加ノートを生成
+                            const extraTime = beatTime + (Math.random() * 0.4 + 0.3); // 0.3-0.7秒後
+                            gameState.beatTimes.splice(nextNoteIndex + 1, 0, extraTime);
+                        }
+                        
+                        // 散りばめたノートを適度に生成
+                        const scatterChance = Math.random();
+                        if (scatterChance < 0.45) { // 45%の確率で散りばめノート
+                            // 少なめのノートを散りばめる
+                            const scatterCount = Math.floor(Math.random() * 2) + 1; // 1-2個の散りばめノート
+                            for (let i = 0; i < scatterCount; i++) {
+                                const randomDelay = Math.random() * 1.5 + 0.2; // 0.2-1.7秒後のランダムな時間
+                                const scatterTime = beatTime + randomDelay;
+                                // 重複しないようにチェック
+                                const isDuplicate = gameState.beatTimes.some(time => Math.abs(time - scatterTime) < 0.1);
+                                if (!isDuplicate) {
+                                    gameState.beatTimes.push(scatterTime);
+                                }
+                            }
+                            // ソートし直す
+                            gameState.beatTimes.sort((a, b) => a - b);
                         }
                     }
                     
