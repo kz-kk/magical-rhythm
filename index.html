@@ -614,6 +614,31 @@
             50% { opacity: 1; }
         }
 
+        /* 同心円エフェクト */
+        .ripple-effect {
+            position: absolute;
+            border: 3px solid rgba(168, 85, 247, 0.85);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: ripple 0.6s ease-out;
+            transform: translate(-50%, -50%);
+        }
+
+        @keyframes ripple {
+            0% {
+                width: 20px;
+                height: 20px;
+                opacity: 1;
+                border-width: 3px;
+            }
+            100% {
+                width: 150px;
+                height: 150px;
+                opacity: 0;
+                border-width: 1px;
+            }
+        }
+
         /* SVGアイコン */
         .icon {
             width: 20px;
@@ -1317,6 +1342,31 @@
         }
 
 
+        // 同心円エフェクト生成
+        function createRippleEffect(lane) {
+            const gameArea = document.getElementById('gameArea');
+            const tapArea = document.querySelector(`[data-lane="${lane}"]`);
+            const gameAreaRect = gameArea.getBoundingClientRect();
+            const tapAreaRect = tapArea.getBoundingClientRect();
+            
+            // タップエリアの中央座標を計算（ゲームエリア内での相対位置）
+            const centerX = tapAreaRect.left + tapAreaRect.width / 2 - gameAreaRect.left;
+            const centerY = tapAreaRect.top + tapAreaRect.height / 2 - gameAreaRect.top;
+            
+            // 同心円要素を作成
+            const ripple = document.createElement('div');
+            ripple.className = 'ripple-effect';
+            ripple.style.left = centerX + 'px'; // transform: translate(-50%, -50%)で中央配置
+            ripple.style.top = centerY + 'px';
+            
+            gameArea.appendChild(ripple);
+            
+            // アニメーション終了後に削除
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+        }
+
         // タップ処理
         function handleTap(lane) {
             if (gameState.state !== 'playing') return;
@@ -1345,6 +1395,8 @@
                     judgment = 'PERFECT!';
                     soundType = 'perfect';
                     gameState.combo++;
+                    // PERFECTの時に同心円エフェクトを表示
+                    createRippleEffect(lane);
                 } else if (minDistance < GOOD_THRESHOLD) {
                     points = 50;
                     judgment = 'GOOD!';
