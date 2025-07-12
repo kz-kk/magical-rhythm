@@ -711,6 +711,7 @@
         let gameStartTime = 0;
         let nextNoteIndex = 0;
         let animationFrame = null;
+        let lastNoteLanes = []; // 直前のノートのレーンを記録
 
         // DOM要素の取得
         const elements = {
@@ -888,38 +889,204 @@
             audioSource.start();
         }
 
+        // 音声ファイルのキャッシュ
+        let audioBufferCache = {};
+
+        async function loadAudioFile(url) {
+            if (audioBufferCache[url]) {
+                return audioBufferCache[url];
+            }
+            
+            try {
+                const response = await fetch(url);
+                const arrayBuffer = await response.arrayBuffer();
+                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                audioBufferCache[url] = audioBuffer;
+                return audioBuffer;
+            } catch (error) {
+                console.warn('音声ファイルの読み込みに失敗:', error, 'URL:', url);
+                return null;
+            }
+        }
+
+        async function playAudioFile(url, volume = 0.5) {
+            if (!audioContext) return;
+            
+            // ローカル環境かどうかを判定して適切なURLを使用
+            const finalUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:'
+                ? url
+                : url.replace('./assets/sounds/', 'https://kz-kk.github.io/magical-rhythm/assets/sounds/');
+            
+            const buffer = await loadAudioFile(finalUrl);
+            if (!buffer) return;
+            
+            const source = audioContext.createBufferSource();
+            const gainNode = audioContext.createGain();
+            
+            source.buffer = buffer;
+            source.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
+            
+            source.start();
+        }
+
         // タップ音生成
         function playTapSound(type = 'hit') {
             if (!audioContext) return;
 
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-
-            // タップ音のタイプによって音程を変える
-            if (type === 'perfect') {
-                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-                oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1);
-            } else if (type === 'good') {
-                oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
-                oscillator.frequency.exponentialRampToValueAtTime(300, audioContext.currentTime + 0.1);
-            } else if (type === 'miss') {
-                oscillator.frequency.setValueAtTime(150, audioContext.currentTime);
-                oscillator.type = 'square';
+            if (type === 'perfect' || type === 'good') {
+                // 成功音として音声ファイルを再生
+                playAudioFile('./assets/sounds/attach.mp3', 2.0);
             } else {
-                // 通常のタップ音
-                oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
-                oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.1);
+                // 通常のタップ音やミス音
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                if (type === 'miss') {
+                    oscillator.frequency.setValueAtTime(150, audioContext.currentTime);
+                    oscillator.type = 'square';
+                } else {
+                    // 通常のタップ音
+                    oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.1);
+                }
+
+                // 音量エンベロープ
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.15);
             }
+        }
 
-            // 音量エンベロープ
-            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
-
-            oscillator.start();
-            oscillator.stop(audioContext.currentTime + 0.15);
+        // シンバル・打楽器のような打鍵音を生成
+        function createCymbalSound(type) {
+            const currentTime = audioContext.currentTime;
+            
+            // メタリック成分（非調和倍音でシンバルっぽく）
+            const metal1 = audioContext.createOscillator();
+            const metal2 = audioContext.createOscillator();
+            const metal3 = audioContext.createOscillator();
+            const metal4 = audioContext.createOscillator();
+            
+            const metalGain1 = audioContext.createGain();
+            const metalGain2 = audioContext.createGain();
+            const metalGain3 = audioContext.createGain();
+            const metalGain4 = audioContext.createGain();
+            
+            // 打楽器のアタック成分（低域）
+            const attackOsc = audioContext.createOscillator();
+            const attackGain = audioContext.createGain();
+            const attackFilter = audioContext.createBiquadFilter();
+            
+            // 高域ノイズ（シンバルのシャリシャリ音）
+            const noiseBuffer = audioContext.createBuffer(1, audioContext.sampleRate * 0.2, audioContext.sampleRate);
+            const noiseData = noiseBuffer.getChannelData(0);
+            for (let i = 0; i < noiseData.length; i++) {
+                noiseData[i] = (Math.random() * 2 - 1) * 0.4;
+            }
+            
+            const noiseSource = audioContext.createBufferSource();
+            const noiseGain = audioContext.createGain();
+            const noiseFilter = audioContext.createBiquadFilter();
+            
+            noiseSource.buffer = noiseBuffer;
+            noiseFilter.type = 'highpass';
+            noiseFilter.frequency.setValueAtTime(5000, currentTime);
+            noiseFilter.Q.setValueAtTime(0.7, currentTime);
+            
+            // アタックフィルター設定
+            attackFilter.type = 'bandpass';
+            attackFilter.frequency.setValueAtTime(180, currentTime);
+            attackFilter.Q.setValueAtTime(3, currentTime);
+            
+            // 基本周波数設定
+            const baseFreq = type === 'perfect' ? 2800 : 2200;
+            
+            // メタリック成分（非調和倍音）
+            metal1.type = 'square';
+            metal1.frequency.setValueAtTime(baseFreq, currentTime);
+            metal1.frequency.exponentialRampToValueAtTime(baseFreq * 0.3, currentTime + 0.3);
+            
+            metal2.type = 'sawtooth';
+            metal2.frequency.setValueAtTime(baseFreq * 1.37, currentTime); // 非調和比
+            metal2.frequency.exponentialRampToValueAtTime(baseFreq * 1.37 * 0.3, currentTime + 0.25);
+            
+            metal3.type = 'square';
+            metal3.frequency.setValueAtTime(baseFreq * 1.73, currentTime); // 非調和比
+            metal3.frequency.exponentialRampToValueAtTime(baseFreq * 1.73 * 0.3, currentTime + 0.2);
+            
+            metal4.type = 'triangle';
+            metal4.frequency.setValueAtTime(baseFreq * 2.41, currentTime); // 非調和比
+            metal4.frequency.exponentialRampToValueAtTime(baseFreq * 2.41 * 0.3, currentTime + 0.15);
+            
+            // アタック成分
+            attackOsc.type = 'triangle';
+            attackOsc.frequency.setValueAtTime(120, currentTime);
+            attackOsc.frequency.exponentialRampToValueAtTime(60, currentTime + 0.06);
+            
+            // 接続
+            metal1.connect(metalGain1);
+            metal2.connect(metalGain2);
+            metal3.connect(metalGain3);
+            metal4.connect(metalGain4);
+            attackOsc.connect(attackFilter);
+            attackFilter.connect(attackGain);
+            noiseSource.connect(noiseFilter);
+            noiseFilter.connect(noiseGain);
+            
+            metalGain1.connect(audioContext.destination);
+            metalGain2.connect(audioContext.destination);
+            metalGain3.connect(audioContext.destination);
+            metalGain4.connect(audioContext.destination);
+            attackGain.connect(audioContext.destination);
+            noiseGain.connect(audioContext.destination);
+            
+            // エンベロープ設定
+            const duration = type === 'perfect' ? 0.5 : 0.4;
+            const volume = type === 'perfect' ? 0.35 : 0.28;
+            
+            // メタリック成分のエンベロープ
+            metalGain1.gain.setValueAtTime(volume * 0.8, currentTime);
+            metalGain1.gain.exponentialRampToValueAtTime(0.01, currentTime + duration);
+            
+            metalGain2.gain.setValueAtTime(volume * 0.6, currentTime);
+            metalGain2.gain.exponentialRampToValueAtTime(0.01, currentTime + duration * 0.8);
+            
+            metalGain3.gain.setValueAtTime(volume * 0.4, currentTime);
+            metalGain3.gain.exponentialRampToValueAtTime(0.01, currentTime + duration * 0.6);
+            
+            metalGain4.gain.setValueAtTime(volume * 0.3, currentTime);
+            metalGain4.gain.exponentialRampToValueAtTime(0.01, currentTime + duration * 0.4);
+            
+            // アタック成分（短い急激なアタック）
+            attackGain.gain.setValueAtTime(volume * 1.2, currentTime);
+            attackGain.gain.exponentialRampToValueAtTime(0.01, currentTime + 0.08);
+            
+            // ノイズ成分
+            noiseGain.gain.setValueAtTime(volume * 0.5, currentTime);
+            noiseGain.gain.exponentialRampToValueAtTime(0.01, currentTime + duration * 0.7);
+            
+            // 再生開始
+            metal1.start(currentTime);
+            metal2.start(currentTime);
+            metal3.start(currentTime);
+            metal4.start(currentTime);
+            attackOsc.start(currentTime);
+            noiseSource.start(currentTime);
+            
+            // 停止
+            metal1.stop(currentTime + duration);
+            metal2.stop(currentTime + duration * 0.8);
+            metal3.stop(currentTime + duration * 0.6);
+            metal4.stop(currentTime + duration * 0.4);
+            attackOsc.stop(currentTime + 0.08);
+            noiseSource.stop(currentTime + duration * 0.7);
         }
 
         // 難易度選択表示
@@ -946,6 +1113,7 @@
             gameState.gameTime = 0;
             gameStartTime = Date.now();
             nextNoteIndex = 0;
+            lastNoteLanes = []; // レーン履歴をリセット
 
             updateScore();
             updateCombo();
@@ -1101,48 +1269,83 @@
                 const appearTime = beatTime - 1.8; // タイミング調整: 2秒 → 1.8秒
                 
                 if (appearTime <= currentTime) {
-                    // 難易度によってノート数を変更
+                    // 難易度による設定
                     let noteCount = 1;
-                    if (gameState.difficulty === 'normal') {
-                        noteCount = Math.floor(Math.random() * 2) + 1; // 1-2個
-                    } else if (gameState.difficulty === 'hard') {
-                        // Hardモード: 散りばめたノートパターン
-                        noteCount = Math.floor(Math.random() * 2) + 1; // 1-2個(横は最大2個)
+                    let generateExtra = false;
+                    
+                    if (gameState.difficulty === 'easy') {
+                        // Easy: 基本的に1個のノート、たまに2個
+                        if (Math.random() < 0.2) { // 20%の確率で2個
+                            noteCount = 2;
+                        }
+                        // 追加ノート生成なし
                         
-                        // 連続ノートを生成 (最大2個まで)
-                        if (Math.random() < 0.25) { // 25%の確率で連続ノート
-                            // 1つだけ追加ノートを生成
-                            const extraTime = beatTime + (Math.random() * 0.4 + 0.3); // 0.3-0.7秒後
-                            gameState.beatTimes.splice(nextNoteIndex + 1, 0, extraTime);
+                    } else if (gameState.difficulty === 'normal') {
+                        // Normal: 1-2個のノート、適度な追加ノート
+                        noteCount = Math.floor(Math.random() * 2) + 1; // 1-2個
+                        
+                        // 30%の確率で追加ノート
+                        if (Math.random() < 0.3 && nextNoteIndex < gameState.beatTimes.length - 1) {
+                            generateExtra = true;
                         }
                         
-                        // 散りばめたノートを適度に生成
-                        const scatterChance = Math.random();
-                        if (scatterChance < 0.45) { // 45%の確率で散りばめノート
-                            // 少なめのノートを散りばめる
-                            const scatterCount = Math.floor(Math.random() * 2) + 1; // 1-2個の散りばめノート
-                            for (let i = 0; i < scatterCount; i++) {
-                                const randomDelay = Math.random() * 1.5 + 0.2; // 0.2-1.7秒後のランダムな時間
-                                const scatterTime = beatTime + randomDelay;
-                                // 重複しないようにチェック
-                                const isDuplicate = gameState.beatTimes.some(time => Math.abs(time - scatterTime) < 0.1);
-                                if (!isDuplicate) {
-                                    gameState.beatTimes.push(scatterTime);
-                                }
-                            }
-                            // ソートし直す
-                            gameState.beatTimes.sort((a, b) => a - b);
+                    } else if (gameState.difficulty === 'hard') {
+                        // Hard: 1-3個のノート、多めの追加ノート
+                        const rand = Math.random();
+                        if (rand < 0.4) {
+                            noteCount = 1; // 40%
+                        } else if (rand < 0.8) {
+                            noteCount = 2; // 40%
+                        } else {
+                            noteCount = 3; // 20%
+                        }
+                        
+                        // 50%の確率で追加ノート
+                        if (Math.random() < 0.5 && nextNoteIndex < gameState.beatTimes.length - 1) {
+                            generateExtra = true;
                         }
                     }
                     
+                    // 追加ノート生成
+                    if (generateExtra) {
+                        const extraCount = gameState.difficulty === 'hard' ? 
+                            Math.floor(Math.random() * 2) + 1 : // Hard: 1-2個
+                            1; // Normal: 1個
+                            
+                        for (let i = 0; i < extraCount; i++) {
+                            const minDelay = gameState.difficulty === 'hard' ? 0.2 : 0.3;
+                            const maxDelay = gameState.difficulty === 'hard' ? 1.2 : 0.8;
+                            const extraTime = beatTime + (Math.random() * (maxDelay - minDelay) + minDelay);
+                            
+                            // 重複チェック
+                            const isDuplicate = gameState.beatTimes.some(time => 
+                                Math.abs(time - extraTime) < 0.15
+                            );
+                            
+                            if (!isDuplicate && extraTime < gameState.audioBuffer.duration) {
+                                gameState.beatTimes.push(extraTime);
+                            }
+                        }
+                        // ソート
+                        gameState.beatTimes.sort((a, b) => a - b);
+                    }
+                    
                     const usedLanes = new Set();
+                    const currentNoteLanes = [];
                     
                     for (let i = 0; i < noteCount; i++) {
                         let lane;
+                        let attempts = 0;
                         do {
                             lane = Math.floor(Math.random() * 4);
-                        } while (usedLanes.has(lane));
+                            attempts++;
+                            // 無限ループを防ぐ
+                            if (attempts > 20) break;
+                        } while (usedLanes.has(lane) || 
+                                (gameState.difficulty === 'hard' && lastNoteLanes.includes(lane)));
+                        
                         usedLanes.add(lane);
+                        currentNoteLanes.push(lane);
                         
                         const noteId = Date.now() + Math.random() + i;
                         
@@ -1159,6 +1362,15 @@
                         // DOM要素作成
                         const noteElement = createNoteElement(note);
                         elements.notesContainer.appendChild(noteElement);
+                    }
+                    
+                    // Hardモードでは直前のレーンを記録
+                    if (gameState.difficulty === 'hard') {
+                        lastNoteLanes = currentNoteLanes.slice(); // コピーして保存
+                        // 最大5個までしか記録しない
+                        if (lastNoteLanes.length > 5) {
+                            lastNoteLanes = lastNoteLanes.slice(-5);
+                        }
                     }
                     
                     nextNoteIndex++;
@@ -1282,7 +1494,9 @@
         async function loadDefaultMusic() {
             try {
                 // デフォルトファイルのパス
-                const defaultMusicPath = './assets/sounds/hyper_dream_dash.mp3';
+                const defaultMusicPath = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:'
+                    ? './assets/sounds/hyper_dream_dash.mp3'
+                    : 'https://kz-kk.github.io/magical-rhythm/assets/sounds/hyper_dream_dash.mp3';
                 
                 // ファイルをfetchで読み込み
                 const response = await fetch(defaultMusicPath);
@@ -1341,7 +1555,30 @@
 
                 // 音楽解析
                 const beats = await analyzeMusicLight(audioBuffer);
-                gameState.beatTimes = beats;
+                
+                // 静かな曲でもある程度のノートを確保
+                const minBeatsPerSecond = 0.5; // 最低でも2秒に1回
+                const minTotalBeats = Math.floor(audioBuffer.duration * minBeatsPerSecond);
+                
+                if (beats.length < minTotalBeats) {
+                    // ビートが少なすぎる場合は補間
+                    const additionalBeats = [];
+                    const interval = audioBuffer.duration / minTotalBeats;
+                    
+                    for (let i = 0; i < minTotalBeats; i++) {
+                        const time = i * interval;
+                        // 既存のビートと重複しないようにチェック
+                        const hasNearbyBeat = beats.some(beat => Math.abs(beat - time) < 0.3);
+                        if (!hasNearbyBeat) {
+                            additionalBeats.push(time);
+                        }
+                    }
+                    
+                    // 既存のビートと補間ビートを結合してソート
+                    gameState.beatTimes = [...beats, ...additionalBeats].sort((a, b) => a - b);
+                } else {
+                    gameState.beatTimes = beats;
+                }
 
                 updateProgress(100);
                 gameState.isAnalyzing = false;
@@ -1350,7 +1587,7 @@
                 // UI更新
                 elements.analysisStatus.classList.add('hidden');
                 elements.successStatus.classList.remove('hidden');
-                elements.beatCount.textContent = beats.length;
+                elements.beatCount.textContent = gameState.beatTimes.length;
                 elements.duration.classList.remove('hidden');
                 elements.durationValue.textContent = Math.floor(audioBuffer.duration);
                 showDifficultySelection();
