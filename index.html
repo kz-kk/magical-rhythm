@@ -315,6 +315,11 @@
             transform: translateX(-50%);
         }
 
+        .note.half {
+            height: 20px;
+            background: linear-gradient(to bottom, #f59e0b, #d97706);
+        }
+
         .note.hit {
             opacity: 0.5;
         }
@@ -361,6 +366,15 @@
             position: relative;
         }
 
+        .tap-key {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+
         .tap-area:last-child {
             border-right: none;
         }
@@ -373,13 +387,6 @@
             background: rgba(255, 255, 255, 0.3);
         }
 
-        .tap-key {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
 
         .controls {
             display: flex;
@@ -477,6 +484,7 @@
             padding: 1rem;
         }
 
+
         .modal-content {
             background: linear-gradient(to bottom, rgba(88, 28, 135, 0.9), rgba(30, 58, 138, 0.9));
             backdrop-filter: blur(10px);
@@ -546,6 +554,66 @@
             background: rgba(255, 255, 255, 0.2);
         }
 
+        /* スプラッシュ画面 */
+        #splashScreen {
+            z-index: 1100;
+            transition: opacity 0.8s ease-out;
+        }
+
+        #splashScreen.fade-out {
+            opacity: 0;
+        }
+
+        .splash-content {
+            position: relative;
+            max-width: 90vw;
+            max-height: 90vh;
+            width: auto;
+            height: auto;
+        }
+
+        .splash-image {
+            width: 100%;
+            height: auto;
+            border-radius: 1rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        .splash-overlay {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            border-radius: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .splash-button {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            color: white;
+            font-size: 1rem;
+            font-weight: 500;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            animation: pulse 2s infinite;
+        }
+
+        .splash-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.8);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
         /* SVGアイコン */
         .icon {
             width: 20px;
@@ -585,6 +653,22 @@
             margin-bottom: 0.5rem;
         }
 
+        .difficulty-and-reset-controls {
+            display: flex;
+            gap: 0.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .difficulty-group {
+            display: flex;
+            gap: 0.25rem;
+            flex: 1;
+        }
+
+        .reset-group {
+            margin-left: 10px;
+        }
+
         .difficulty-btn {
             flex: 1;
             opacity: 0.6;
@@ -598,13 +682,25 @@
         }
 
         .start-btn {
-            flex: 1;
-            opacity: 1;
+            padding: 12px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin-top: 30px;
         }
 
     </style>
 </head>
 <body>
+    <!-- スプラッシュ画面 -->
+    <div id="splashScreen" class="modal-overlay">
+        <div class="splash-content">
+            <img id="splashImage" src="./assets/images/screen.jpg" alt="Magical Rhythm" class="splash-image">
+            <div class="splash-overlay">
+                <button id="splashButton" class="splash-button">タップして開始</button>
+            </div>
+        </div>
+    </div>
+
     <!-- ウェルカムモーダル -->
     <div id="welcomeModal" class="modal-overlay hidden">
         <div class="modal-content">
@@ -676,30 +772,41 @@
             </div>
         </div>
 
-        <!-- 難易度選択 -->
+        <!-- 難易度選択とリセット -->
         <div id="difficultySelection" class="controls hidden">
-            <!-- <div class="difficulty-text">難易度を選択してください</div> -->
-            <div class="difficulty-buttons">
-                <button id="easyBtn" class="button button-green difficulty-btn active">
-                    <svg class="icon icon-small" viewBox="0 0 24 24">
-                        <path d="M20 12c0 4.4-3.6 8-8 8s-8-3.6-8-8 3.6-8 8-8 8 3.6 8 8z"></path>
-                        <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                    Easy
-                </button>
-                <button id="normalBtn" class="button button-yellow difficulty-btn">
-                    <svg class="icon icon-small" viewBox="0 0 24 24">
-                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
-                    </svg>
-                    Normal
-                </button>
-                <button id="hardBtn" class="button button-red difficulty-btn">
-                    <svg class="icon icon-small" viewBox="0 0 24 24">
-                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                    </svg>
-                    Hard
-                </button>
+            <div class="difficulty-and-reset-controls">
+                <div class="difficulty-group">
+                    <button id="easyBtn" class="button button-green difficulty-btn active">
+                        <svg class="icon icon-small" viewBox="0 0 24 24">
+                            <path d="M20 12c0 4.4-3.6 8-8 8s-8-3.6-8-8 3.6-8 8-8 8 3.6 8 8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                        Easy
+                    </button>
+                    <button id="normalBtn" class="button button-yellow difficulty-btn">
+                        <svg class="icon icon-small" viewBox="0 0 24 24">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                        </svg>
+                        Normal
+                    </button>
+                    <button id="hardBtn" class="button button-red difficulty-btn">
+                        <svg class="icon icon-small" viewBox="0 0 24 24">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                        </svg>
+                        Hard
+                    </button>
+                </div>
+                <div class="reset-group">
+                    <button id="resetBtn" class="button button-red hidden">
+                        <svg class="icon icon-medium" viewBox="0 0 24 24">
+                            <polyline points="1 4 1 10 7 10"></polyline>
+                            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                        </svg>
+                        RESET                
+                    </button>
+                </div>
             </div>
+            
         </div>
 
         <!-- エラー状態 -->
@@ -752,18 +859,11 @@
 
         <!-- コントロール -->
         <div id="controls" class="controls">
-            <button id="gameStartBtn" class="button button-green hidden">
+            <button id="gameStartBtn" class="button button-green start-btn hidden">
                 <svg class="icon icon-medium" viewBox="0 0 24 24">
                     <polygon points="5 3 19 12 5 21 5 3"></polygon>
                 </svg>
                 START
-            </button>
-            <button id="resetBtn" class="button button-red hidden">
-                <svg class="icon icon-medium" viewBox="0 0 24 24">
-                    <polyline points="1 4 1 10 7 10"></polyline>
-                    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
-                </svg>
-                RESET                
             </button>
         </div>
 
@@ -780,8 +880,8 @@
 
         <!-- 操作説明 -->
         <div class="instructions">
-            <p>音楽ファイルをアップロードして、楽曲のビートに合わせてプレイ！</p>
-            <p>解析に失敗した場合は「シンプルパターン」を使用できます</p>
+            <!-- <p>音楽ファイルをアップロードして、楽曲のビートに合わせてプレイ！</p>
+            <p>解析に失敗した場合は「シンプルパターン」を使用できます</p> -->
             <p>キーボード操作：1, 2, 3, 4 キーでもタップできます</p>
         </div>
     </div>
@@ -789,7 +889,7 @@
     <script>
         // ゲーム状態管理
         const gameState = {
-            state: 'ready',
+            state: 'ready', // 'ready', 'playing', 'paused', 'finished'
             score: 0,
             combo: 0,
             notes: [],
@@ -802,7 +902,9 @@
             volume: 0.5,
             analysisProgress: 0,
             useSimplePattern: false,
-            difficulty: 'easy' // 'easy', 'normal', or 'hard'
+            difficulty: 'easy', // 'easy', 'normal', or 'hard'
+            pauseTime: 0,
+            pausedAt: 0
         };
 
         // ゲーム設定
@@ -977,7 +1079,7 @@
         }
 
         // 音楽再生
-        function playMusic() {
+        function playMusic(offset = 0) {
             if (!gameState.audioBuffer || !audioContext) return;
 
             if (audioSource) {
@@ -995,12 +1097,14 @@
             audioSource.connect(gainNode);
             gainNode.connect(audioContext.destination);
 
-            // 音楽開始時刻を正確に記録
+            // 指定されたオフセットから再生開始
             const startTime = audioContext.currentTime;
-            audioSource.start(startTime);
+            audioSource.start(startTime, offset);
             
-            // ゲーム開始時刻を音楽開始と同期
-            gameStartTime = Date.now();
+            // ゲーム開始時刻を音楽開始と同期（オフセットを考慮）
+            if (offset === 0) {
+                gameStartTime = Date.now();
+            }
             
             return startTime;
         }
@@ -1052,8 +1156,8 @@
             if (!audioContext) return;
 
             if (type === 'perfect' || type === 'good') {
-                // 成功音として音声ファイルを再生
-                playAudioFile('./assets/sounds/attach.mp3', 2.0);
+                // 成功音として音声ファイルのみを再生
+                playAudioFile('./assets/sounds/attach.mp3', 3.0);
             } else {
                 // 通常のタップ音やミス音
                 const oscillator = audioContext.createOscillator();
@@ -1080,130 +1184,6 @@
             }
         }
 
-        // シンバル・打楽器のような打鍵音を生成
-        function createCymbalSound(type) {
-            const currentTime = audioContext.currentTime;
-            
-            // メタリック成分（非調和倍音でシンバルっぽく）
-            const metal1 = audioContext.createOscillator();
-            const metal2 = audioContext.createOscillator();
-            const metal3 = audioContext.createOscillator();
-            const metal4 = audioContext.createOscillator();
-            
-            const metalGain1 = audioContext.createGain();
-            const metalGain2 = audioContext.createGain();
-            const metalGain3 = audioContext.createGain();
-            const metalGain4 = audioContext.createGain();
-            
-            // 打楽器のアタック成分（低域）
-            const attackOsc = audioContext.createOscillator();
-            const attackGain = audioContext.createGain();
-            const attackFilter = audioContext.createBiquadFilter();
-            
-            // 高域ノイズ（シンバルのシャリシャリ音）
-            const noiseBuffer = audioContext.createBuffer(1, audioContext.sampleRate * 0.2, audioContext.sampleRate);
-            const noiseData = noiseBuffer.getChannelData(0);
-            for (let i = 0; i < noiseData.length; i++) {
-                noiseData[i] = (Math.random() * 2 - 1) * 0.4;
-            }
-            
-            const noiseSource = audioContext.createBufferSource();
-            const noiseGain = audioContext.createGain();
-            const noiseFilter = audioContext.createBiquadFilter();
-            
-            noiseSource.buffer = noiseBuffer;
-            noiseFilter.type = 'highpass';
-            noiseFilter.frequency.setValueAtTime(5000, currentTime);
-            noiseFilter.Q.setValueAtTime(0.7, currentTime);
-            
-            // アタックフィルター設定
-            attackFilter.type = 'bandpass';
-            attackFilter.frequency.setValueAtTime(180, currentTime);
-            attackFilter.Q.setValueAtTime(3, currentTime);
-            
-            // 基本周波数設定
-            const baseFreq = type === 'perfect' ? 2800 : 2200;
-            
-            // メタリック成分（非調和倍音）
-            metal1.type = 'square';
-            metal1.frequency.setValueAtTime(baseFreq, currentTime);
-            metal1.frequency.exponentialRampToValueAtTime(baseFreq * 0.3, currentTime + 0.3);
-            
-            metal2.type = 'sawtooth';
-            metal2.frequency.setValueAtTime(baseFreq * 1.37, currentTime); // 非調和比
-            metal2.frequency.exponentialRampToValueAtTime(baseFreq * 1.37 * 0.3, currentTime + 0.25);
-            
-            metal3.type = 'square';
-            metal3.frequency.setValueAtTime(baseFreq * 1.73, currentTime); // 非調和比
-            metal3.frequency.exponentialRampToValueAtTime(baseFreq * 1.73 * 0.3, currentTime + 0.2);
-            
-            metal4.type = 'triangle';
-            metal4.frequency.setValueAtTime(baseFreq * 2.41, currentTime); // 非調和比
-            metal4.frequency.exponentialRampToValueAtTime(baseFreq * 2.41 * 0.3, currentTime + 0.15);
-            
-            // アタック成分
-            attackOsc.type = 'triangle';
-            attackOsc.frequency.setValueAtTime(120, currentTime);
-            attackOsc.frequency.exponentialRampToValueAtTime(60, currentTime + 0.06);
-            
-            // 接続
-            metal1.connect(metalGain1);
-            metal2.connect(metalGain2);
-            metal3.connect(metalGain3);
-            metal4.connect(metalGain4);
-            attackOsc.connect(attackFilter);
-            attackFilter.connect(attackGain);
-            noiseSource.connect(noiseFilter);
-            noiseFilter.connect(noiseGain);
-            
-            metalGain1.connect(audioContext.destination);
-            metalGain2.connect(audioContext.destination);
-            metalGain3.connect(audioContext.destination);
-            metalGain4.connect(audioContext.destination);
-            attackGain.connect(audioContext.destination);
-            noiseGain.connect(audioContext.destination);
-            
-            // エンベロープ設定
-            const duration = type === 'perfect' ? 0.5 : 0.4;
-            const volume = type === 'perfect' ? 0.35 : 0.28;
-            
-            // メタリック成分のエンベロープ
-            metalGain1.gain.setValueAtTime(volume * 0.8, currentTime);
-            metalGain1.gain.exponentialRampToValueAtTime(0.01, currentTime + duration);
-            
-            metalGain2.gain.setValueAtTime(volume * 0.6, currentTime);
-            metalGain2.gain.exponentialRampToValueAtTime(0.01, currentTime + duration * 0.8);
-            
-            metalGain3.gain.setValueAtTime(volume * 0.4, currentTime);
-            metalGain3.gain.exponentialRampToValueAtTime(0.01, currentTime + duration * 0.6);
-            
-            metalGain4.gain.setValueAtTime(volume * 0.3, currentTime);
-            metalGain4.gain.exponentialRampToValueAtTime(0.01, currentTime + duration * 0.4);
-            
-            // アタック成分（短い急激なアタック）
-            attackGain.gain.setValueAtTime(volume * 1.2, currentTime);
-            attackGain.gain.exponentialRampToValueAtTime(0.01, currentTime + 0.08);
-            
-            // ノイズ成分
-            noiseGain.gain.setValueAtTime(volume * 0.5, currentTime);
-            noiseGain.gain.exponentialRampToValueAtTime(0.01, currentTime + duration * 0.7);
-            
-            // 再生開始
-            metal1.start(currentTime);
-            metal2.start(currentTime);
-            metal3.start(currentTime);
-            metal4.start(currentTime);
-            attackOsc.start(currentTime);
-            noiseSource.start(currentTime);
-            
-            // 停止
-            metal1.stop(currentTime + duration);
-            metal2.stop(currentTime + duration * 0.8);
-            metal3.stop(currentTime + duration * 0.6);
-            metal4.stop(currentTime + duration * 0.4);
-            attackOsc.stop(currentTime + 0.08);
-            noiseSource.stop(currentTime + duration * 0.7);
-        }
 
         // 難易度選択表示
         function showDifficultySelection() {
@@ -1219,25 +1199,93 @@
             elements.hardBtn.classList.toggle('active', difficulty === 'hard');
         }
 
-        // ゲーム開始
+        // ゲーム開始・一時停止・再開
         function startGame() {
             if (!gameState.analysisComplete || !gameState.beatTimes.length) return;
 
+            if (gameState.state === 'playing') {
+                // 再生中なら一時停止
+                pauseGame();
+            } else if (gameState.state === 'paused') {
+                // 一時停止中なら再開
+                resumeGame();
+            } else {
+                // 初回開始
+                gameState.state = 'playing';
+                gameState.score = 0;
+                gameState.combo = 0;
+                gameState.notes = [];
+                gameState.gameTime = 0;
+                nextNoteIndex = 0;
+                lastNoteLanes = []; // レーン履歴をリセット
+
+                updateScore();
+                updateCombo();
+                showGameControls();
+
+                // 音楽を再生（playMusicが開始時刻を設定）
+                playMusic();
+                gameLoop();
+            }
+        }
+
+        // ゲーム一時停止
+        function pauseGame() {
+            gameState.state = 'paused';
+            gameState.pauseTime = Date.now();
+            
+            // 現在の再生位置を記録
+            gameState.pausedAt = (Date.now() - gameStartTime) / 1000;
+            
+            // 音楽停止
+            if (audioSource) {
+                audioSource.stop();
+            }
+            
+            // アニメーションフレーム停止
+            if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+            }
+            
+            // ボタン表示更新
+            updateStartButton();
+        }
+
+        // ゲーム再開
+        function resumeGame() {
             gameState.state = 'playing';
-            gameState.score = 0;
-            gameState.combo = 0;
-            gameState.notes = [];
-            gameState.gameTime = 0;
-            nextNoteIndex = 0;
-            lastNoteLanes = []; // レーン履歴をリセット
-
-            updateScore();
-            updateCombo();
-            showGameControls();
-
-            // 音楽を再生（playMusicが開始時刻を設定）
-            playMusic();
+            
+            // 音楽を一時停止した位置から再開
+            const resumeOffset = gameState.pausedAt || 0;
+            gameStartTime = Date.now() - (resumeOffset * 1000);
+            
+            // 音楽再開（オフセット指定）
+            playMusic(resumeOffset);
             gameLoop();
+            
+            // ボタン表示更新
+            updateStartButton();
+        }
+
+        // STARTボタンの表示を更新
+        function updateStartButton() {
+            const startBtn = elements.gameStartBtn;
+            if (gameState.state === 'playing') {
+                startBtn.innerHTML = `
+                    <svg class="icon icon-medium" viewBox="0 0 24 24">
+                        <rect x="6" y="4" width="4" height="16"></rect>
+                        <rect x="14" y="4" width="4" height="16"></rect>
+                    </svg>
+                    PAUSE
+                `;
+            } else {
+                startBtn.innerHTML = `
+                    <svg class="icon icon-medium" viewBox="0 0 24 24">
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                    START
+                `;
+            }
         }
 
 
@@ -1262,10 +1310,12 @@
             updateCombo();
             hideJudgment();
             
+            
             // 難易度選択を再表示
             elements.difficultySelection.classList.remove('hidden');
             showReadyControls();
         }
+
 
         // タップ処理
         function handleTap(lane) {
@@ -1359,7 +1409,7 @@
         function createNoteElement(note) {
             const noteElement = document.createElement('div');
             noteElement.id = `note-${note.id}`;
-            noteElement.className = 'note';
+            noteElement.className = note.isHalf ? 'note half' : 'note';
             noteElement.style.left = `${(note.lane + 0.5) * 25}%`;
             noteElement.style.top = `${note.y}px`;
             return noteElement;
@@ -1423,29 +1473,6 @@
                         }
                     }
                     
-                    // 追加ノート生成
-                    if (generateExtra) {
-                        const extraCount = gameState.difficulty === 'hard' ? 
-                            Math.floor(Math.random() * 2) + 1 : // Hard: 1-2個
-                            1; // Normal: 1個
-                            
-                        for (let i = 0; i < extraCount; i++) {
-                            const minDelay = gameState.difficulty === 'hard' ? 0.2 : 0.3;
-                            const maxDelay = gameState.difficulty === 'hard' ? 1.2 : 0.8;
-                            const extraTime = beatTime + (Math.random() * (maxDelay - minDelay) + minDelay);
-                            
-                            // 重複チェック
-                            const isDuplicate = gameState.beatTimes.some(time => 
-                                Math.abs(time - extraTime) < 0.15
-                            );
-                            
-                            if (!isDuplicate && extraTime < gameState.audioBuffer.duration) {
-                                gameState.beatTimes.push(extraTime);
-                            }
-                        }
-                        // ソート
-                        gameState.beatTimes.sort((a, b) => a - b);
-                    }
                     
                     const usedLanes = new Set();
                     const currentNoteLanes = [];
@@ -1479,6 +1506,48 @@
                         // DOM要素作成
                         const noteElement = createNoteElement(note);
                         elements.notesContainer.appendChild(noteElement);
+                    }
+                    
+                    // オレンジノート（連続タップ）生成
+                    if (generateExtra && currentNoteLanes.length > 0) {
+                        // 連続タップ用のオレンジノートを生成
+                        let comboCount = gameState.difficulty === 'hard' ? 
+                            Math.floor(Math.random() * 3) + 2 : // Hard: 2-4個
+                            Math.floor(Math.random() * 2) + 2; // Normal: 2-3個
+                            
+                        // 最初のレーンを基準にする
+                        const baseLane = currentNoteLanes[0];
+                            
+                        for (let i = 0; i < comboCount; i++) {
+                            const comboDelay = 0.15 + (i * 0.15); // 0.15秒間隔で連続
+                            const comboTime = beatTime + comboDelay;
+                            
+                            if (comboTime < gameState.audioBuffer.duration) {
+                                // 隣接するレーンを選択（1→2、2→3など）
+                                let comboLane = baseLane;
+                                if (i > 0) {
+                                    // 前のノートから隣接するレーンに移動
+                                    const direction = Math.random() < 0.5 ? -1 : 1;
+                                    comboLane = Math.max(0, Math.min(3, baseLane + (direction * (i % 2 === 0 ? 1 : -1))));
+                                }
+                                
+                                const comboNoteId = Date.now() + Math.random() + 1000 + i;
+                                const comboNote = {
+                                    id: comboNoteId,
+                                    lane: comboLane,
+                                    y: -50,
+                                    targetTime: comboTime,
+                                    hit: false,
+                                    isHalf: true // オレンジノートフラグ
+                                };
+                                
+                                gameState.notes.push(comboNote);
+                                
+                                // DOM要素作成
+                                const comboNoteElement = createNoteElement(comboNote);
+                                elements.notesContainer.appendChild(comboNoteElement);
+                            }
+                        }
                     }
                     
                     // Hardモードでは直前のレーンを記録
@@ -1539,18 +1608,18 @@
         // コントロール表示管理
         function showGameControls() {
             elements.difficultySelection.classList.add('hidden');
-            elements.gameStartBtn.classList.add('hidden');
-            elements.resetBtn.classList.remove('hidden');
+            elements.gameStartBtn.classList.remove('hidden');
+            updateStartButton();
         }
 
         function showFinishControls() {
             elements.gameStartBtn.classList.remove('hidden');
-            elements.resetBtn.classList.remove('hidden');
+            updateStartButton();
         }
 
         function showReadyControls() {
             elements.gameStartBtn.classList.remove('hidden');
-            elements.resetBtn.classList.add('hidden');
+            updateStartButton();
         }
 
         // イベントリスナー設定
@@ -1564,28 +1633,38 @@
         elements.hardBtn.addEventListener('click', () => selectDifficulty('hard'));
 
         // モーダルのイベントリスナー
-        elements.modalSelectSong.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            hideWelcomeModal();
-            elements.newFileInput.click();
-        });
+        if (elements.modalSelectSong) {
+            elements.modalSelectSong.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Select song button clicked'); // デバッグ用
+                localStorage.setItem('magicalRhythmVisited', 'true');
+                hideWelcomeModal();
+                elements.newFileInput.click();
+            });
+        }
 
-        elements.modalPlayDefault.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('Demo button clicked'); // デバッグ用
-            hideWelcomeModal();
-            loadDefaultMusic();
-        });
-
-        // モーダル外クリックで閉じる
-        elements.welcomeModal.addEventListener('click', (e) => {
-            if (e.target === elements.welcomeModal) {
+        if (elements.modalPlayDefault) {
+            elements.modalPlayDefault.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Demo button clicked'); // デバッグ用
+                localStorage.setItem('magicalRhythmVisited', 'true');
                 hideWelcomeModal();
                 loadDefaultMusic();
-            }
-        });
+            });
+        }
+
+        // モーダル外クリックで閉じる
+        if (elements.welcomeModal) {
+            elements.welcomeModal.addEventListener('click', (e) => {
+                if (e.target === elements.welcomeModal) {
+                    console.log('Modal background clicked'); // デバッグ用
+                    hideWelcomeModal();
+                    // モーダル外クリック時はデモ曲をロードしない（ユーザーが選択するまで待つ）
+                }
+            });
+        }
 
         // 音量調整
         elements.volumeSlider.addEventListener('input', (e) => {
@@ -1769,19 +1848,68 @@
             }
         }
 
-        // ページ読み込み時の処理
-        window.addEventListener('DOMContentLoaded', () => {
-            // 初回訪問かチェック（localStorage使用）
-            const hasVisited = localStorage.getItem('magicalRhythmVisited');
+        // スプラッシュ画面の表示・非表示
+        function showSplashScreen() {
+            const splashScreen = document.getElementById('splashScreen');
+            const splashImage = document.getElementById('splashImage');
             
-            if (!hasVisited) {
-                // 初回訪問の場合はモーダルを表示
-                localStorage.setItem('magicalRhythmVisited', 'true');
-                showWelcomeModal();
-            } else {
-                // 既訪問の場合はデフォルト音楽を読み込み
-                loadDefaultMusic();
-            }
+            // 画像パスを環境に応じて設定
+            const imagePath = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:'
+                ? './assets/images/screen.jpg'
+                : 'https://kz-kk.github.io/magical-rhythm/assets/images/screen.jpg';
+            splashImage.src = imagePath;
+            
+            splashScreen.classList.remove('hidden');
+        }
+
+        function hideSplashScreen() {
+            const splashScreen = document.getElementById('splashScreen');
+            splashScreen.classList.add('fade-out');
+            
+            // フェードアウト完了後に完全に削除する
+            setTimeout(() => {
+                splashScreen.remove();
+            }, 800); // transition時間と同じ
+        }
+
+        // ページ読み込み時の処理
+        window.addEventListener('DOMContentLoaded', async () => {
+            // 画像パスを環境に応じて設定
+            const splashImage = document.getElementById('splashImage');
+            const imagePath = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:'
+                ? './assets/images/screen.jpg'
+                : 'https://kz-kk.github.io/magical-rhythm/assets/images/screen.jpg';
+            splashImage.src = imagePath;
+            
+            // スプラッシュボタンのクリックイベント
+            const splashButton = document.getElementById('splashButton');
+            splashButton.addEventListener('click', async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                hideSplashScreen();
+                
+                // 効果音を事前にロード
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                
+                // attach.mp3を事前にロード
+                const attachSoundPath = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:'
+                    ? './assets/sounds/attach.mp3'
+                    : 'https://kz-kk.github.io/magical-rhythm/assets/sounds/attach.mp3';
+                await loadAudioFile(attachSoundPath);
+                
+                // 初回訪問かチェック（localStorage使用）
+                const hasVisited = localStorage.getItem('magicalRhythmVisited');
+                
+                if (!hasVisited) {
+                    // 初回訪問の場合はモーダルを表示
+                    showWelcomeModal();
+                } else {
+                    // 既訪問の場合はデフォルト音楽を読み込み
+                    loadDefaultMusic();
+                }
+            });
         });
     </script>
 </body>
